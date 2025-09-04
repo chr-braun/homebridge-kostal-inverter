@@ -1,7 +1,7 @@
 {
   "name": "homebridge-kostal-inverter",
   "displayName": "Kostal Inverter",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "description": "Homebridge plugin for Kostal solar inverters with MQTT support, multi-language UI, and child bridge capability",
   "main": "dist/index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "prepublishOnly": "npm run build",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "postinstall": "python3 -m pip install -r requirements.txt --quiet",
+    "postinstall": "bash install-python-deps.sh || echo 'Python dependencies installation failed - please run: bash install-python-deps.sh'",
     "setup-kostal": "python3 kostal_data_bridge.py --setup",
     "start-kostal": "python3 kostal_data_bridge.py"
   },

@@ -1,0 +1,27 @@
+{
+  "bridge": {
+    "name": "Homebridge Test",
+    "username": "0E:16:CA:9B:88:53",
+    "port": 51197,
+    "pin": "031-45-154"
+  },
+  "accessories": [],
+  "platforms": [
+    {
+      "platform": "KostalInverter",
+      "name": "Kostal Solar Test",
+      "mqtt": {
+        "host": "localhost",
+        "port": 1883,
+        "clientId": "homebridge-kostal-test"
+      },
+      "inverter": {
+        "name": "Kostal Piko Test",
+        "model": "Piko 10.0",
+        "serialNumber": "TEST123456789"
+      },
+      "language": "de",
+      "debug": true
+    }
+  ]
+}

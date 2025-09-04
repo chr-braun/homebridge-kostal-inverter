@@ -152,23 +152,30 @@ Aktivieren Sie die Child Bridge-Funktion für bessere Stabilität:
 Das Plugin enthält ein integriertes Python-Script für echte Kostal-Daten:
 
 ```bash
-# 1. Python-Dependencies installieren (automatisch bei npm install)
-npm install
+# 1. Plugin installieren
+npm install -g homebridge-kostal-inverter
 
-# 2. Kostal-Bridge konfigurieren
+# 2. Python-Dependencies installieren
+bash install-python-deps.sh
+
+# 3. Kostal-Bridge konfigurieren
 npm run setup-kostal
 
-# 3. Kostal Data Bridge starten
+# 4. Kostal Data Bridge starten
 npm run start-kostal
 
-# 4. Homebridge starten (in separatem Terminal)
+# 5. Homebridge starten (in separatem Terminal)
 homebridge -D
 ```
 
-**Automatische Installation:**
-- Python-Dependencies werden automatisch bei `npm install` installiert
-- Interaktive Konfiguration mit `npm run setup-kostal`
-- Einfacher Start mit `npm run start-kostal`
+**Installation der Python-Dependencies:**
+- Automatisch bei `npm install` (kann fehlschlagen auf manchen Systemen)
+- Manuell mit `bash install-python-deps.sh`
+- Oder direkt: `pip3 install paho-mqtt pykoplenti`
+
+**Troubleshooting:**
+- Bei "externally-managed-environment" Fehler: `pip3 install --user paho-mqtt pykoplenti`
+- Bei Permission-Fehlern: `sudo pip3 install paho-mqtt pykoplenti`
 
 Siehe [KOSTAL-REAL-DATA-GUIDE.md](KOSTAL-REAL-DATA-GUIDE.md) für Details.
 
