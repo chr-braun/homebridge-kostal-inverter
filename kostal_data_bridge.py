@@ -293,6 +293,25 @@ async def main():
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--setup":
         setup_config()
+    elif len(sys.argv) > 1 and sys.argv[1] == "--get-data":
+        # Einmalige Datenabfrage für Homebridge
+        async def get_single_data():
+            kostal_config, mqtt_config = load_config()
+            global KOSTAL_CONFIG, MQTT_CONFIG
+            KOSTAL_CONFIG.update(kostal_config)
+            MQTT_CONFIG.update(mqtt_config)
+            
+            bridge = KostalDataBridge()
+            if await bridge.initialize_kostal():
+                data = await bridge.get_kostal_data()
+                print(json.dumps(data))
+            else:
+                print(json.dumps({}))
+        
+        try:
+            asyncio.run(get_single_data())
+        except Exception as e:
+            print(json.dumps({"error": str(e)}))
     else:
         print("Kostal Data Bridge für Homebridge-Plugin")
         print("========================================")

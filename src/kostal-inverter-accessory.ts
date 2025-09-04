@@ -21,27 +21,20 @@ export class KostalInverterAccessory {
     this.device = accessory.context.device;
     this.log = platform.log;
 
-    // Accessory-Informationen setzen
+    // Accessory Information Service
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Kostal')
       .setCharacteristic(this.platform.Characteristic.Model, this.device.model || 'Solar Inverter')
       .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.serialNumber)
       .setCharacteristic(this.platform.Characteristic.FirmwareRevision, '1.0.0');
 
-    // Services basierend auf Gerätetyp erstellen
     this.createServices();
-
-    // Event-Handler einrichten
     this.setupEventHandlers();
   }
 
-
-  /**
-   * Services basierend auf Gerätetyp erstellen
-   */
   private createServices(): void {
     const deviceType = this.device.type;
-
+    
     switch (deviceType) {
       case 'main':
         this.createMainInverterServices();
@@ -54,229 +47,175 @@ export class KostalInverterAccessory {
     }
   }
 
-  /**
-   * Services für Hauptwechselrichter erstellen
-   */
   private createMainInverterServices(): void {
-    // Hauptservice (Light Sensor für Leistung)
-    this.service = this.accessory.getService(this.platform.Service.LightSensor) ||
-      this.accessory.addService(this.platform.Service.LightSensor, this.device.name, 'main');
-
-    // Temperatur-Sensor
-    this.temperatureService = this.accessory.getService(this.platform.Service.TemperatureSensor) ||
-      this.accessory.addService(this.platform.Service.TemperatureSensor, `${this.device.name} Temperatur`, 'temperature');
-
-    // Energie-Sensor (als Feuchtigkeitssensor für Prozentanzeige)
-    this.energyService = this.accessory.getService(this.platform.Service.HumiditySensor) ||
-      this.accessory.addService(this.platform.Service.HumiditySensor, `${this.device.name} Tagesenergie`, 'energy');
-
-    // Status-Sensor
-    this.statusService = this.accessory.getService(this.platform.Service.ContactSensor) ||
-      this.accessory.addService(this.platform.Service.ContactSensor, `${this.device.name} Status`, 'status');
-
-    // Leistung als Light Sensor (für genaue Watt-Anzeige)
+    // Hauptleistung als Light Sensor (Lux = Watt)
     this.powerService = this.accessory.getService(this.platform.Service.LightSensor) ||
-      this.accessory.addService(this.platform.Service.LightSensor, `${this.device.name} Leistung`, 'power');
+      this.accessory.addService(this.platform.Service.LightSensor, 'Solar Power', 'solar-power');
+    
+    this.powerService.setCharacteristic(this.platform.Characteristic.Name, 'Solar Power');
+    this.powerService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0);
 
-    // Spannung als Light Sensor
-    this.voltageService = this.accessory.getService(this.platform.Service.LightSensor) ||
-      this.accessory.addService(this.platform.Service.LightSensor, `${this.device.name} Spannung`, 'voltage');
+    // Temperatur Service
+    this.temperatureService = this.accessory.getService(this.platform.Service.TemperatureSensor) ||
+      this.accessory.addService(this.platform.Service.TemperatureSensor, 'Inverter Temperature', 'inverter-temp');
+    
+    this.temperatureService.setCharacteristic(this.platform.Characteristic.Name, 'Inverter Temperature');
+    this.temperatureService.setCharacteristic(this.platform.Characteristic.CurrentTemperature, 20);
+
+    // Energie als Humidity Sensor (Feuchtigkeit = kWh)
+    this.energyService = this.accessory.getService(this.platform.Service.HumiditySensor) ||
+      this.accessory.addService(this.platform.Service.HumiditySensor, 'Daily Energy', 'daily-energy');
+    
+    this.energyService.setCharacteristic(this.platform.Characteristic.Name, 'Daily Energy');
+    this.energyService.setCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity, 0);
+
+    // Status als Contact Sensor
+    this.statusService = this.accessory.getService(this.platform.Service.ContactSensor) ||
+      this.accessory.addService(this.platform.Service.ContactSensor, 'Inverter Status', 'inverter-status');
+    
+    this.statusService.setCharacteristic(this.platform.Characteristic.Name, 'Inverter Status');
+    this.statusService.setCharacteristic(this.platform.Characteristic.ContactSensorState, 
+      this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+
+    // AC-Spannung als Light Sensor
+    this.voltageService = this.accessory.getService('AC Voltage') ||
+      this.accessory.addService(this.platform.Service.LightSensor, 'AC Voltage', 'ac-voltage');
+    
+    this.voltageService.setCharacteristic(this.platform.Characteristic.Name, 'AC Voltage');
+    this.voltageService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0);
   }
 
-  /**
-   * Services für String erstellen
-   */
   private createStringServices(): void {
-    // String-Service (Light Sensor für Leistung)
-    this.service = this.accessory.getService(this.platform.Service.LightSensor) ||
-      this.accessory.addService(this.platform.Service.LightSensor, this.device.name, 'string');
-
-    // Spannung als Light Sensor
+    const stringNumber = this.device.stringNumber;
+    
+    // DC-Spannung als Light Sensor
     this.voltageService = this.accessory.getService(this.platform.Service.LightSensor) ||
-      this.accessory.addService(this.platform.Service.LightSensor, `${this.device.name} Spannung`, 'voltage');
+      this.accessory.addService(this.platform.Service.LightSensor, `String ${stringNumber} Voltage`, `string-${stringNumber}-voltage`);
+    
+    this.voltageService.setCharacteristic(this.platform.Characteristic.Name, `String ${stringNumber} Voltage`);
+    this.voltageService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0);
 
-    // Strom als Light Sensor
-    this.currentService = this.accessory.getService(this.platform.Service.LightSensor) ||
-      this.accessory.addService(this.platform.Service.LightSensor, `${this.device.name} Strom`, 'current');
+    // DC-Strom als Light Sensor
+    this.currentService = this.accessory.getService(`String ${stringNumber} Current`) ||
+      this.accessory.addService(this.platform.Service.LightSensor, `String ${stringNumber} Current`, `string-${stringNumber}-current`);
+    
+    this.currentService.setCharacteristic(this.platform.Characteristic.Name, `String ${stringNumber} Current`);
+    this.currentService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0);
+
+    // DC-Leistung als Light Sensor
+    this.powerService = this.accessory.getService(`String ${stringNumber} Power`) ||
+      this.accessory.addService(this.platform.Service.LightSensor, `String ${stringNumber} Power`, `string-${stringNumber}-power`);
+    
+    this.powerService.setCharacteristic(this.platform.Characteristic.Name, `String ${stringNumber} Power`);
+    this.powerService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0);
   }
 
-  /**
-   * Generische Services erstellen
-   */
   private createGenericServices(): void {
-    // Fallback: Light Sensor für alle Werte
-    this.service = this.accessory.getService(this.platform.Service.LightSensor) ||
-      this.accessory.addService(this.platform.Service.LightSensor, this.device.name, 'generic');
+    // Fallback für unbekannte Gerätetypen
+    this.powerService = this.accessory.getService(this.platform.Service.LightSensor) ||
+      this.accessory.addService(this.platform.Service.LightSensor, 'Power', 'power');
+    
+    this.powerService.setCharacteristic(this.platform.Characteristic.Name, 'Power');
+    this.powerService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0);
   }
 
-  /**
-   * Event-Handler einrichten
-   */
   private setupEventHandlers(): void {
-    // Hauptservice (Leistung)
-    if (this.service) {
-      this.service.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
-        .onGet(this.getCurrentValue.bind(this, 'power'));
-    }
+    // Event Handler für Characteristic-Updates
+    this.powerService?.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+      .on('get', (callback) => {
+        const value = this.currentValues.get('power') || 0;
+        callback(null, value);
+      });
 
-    // Temperatur-Service
-    if (this.temperatureService) {
-      this.temperatureService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
-        .onGet(this.getCurrentValue.bind(this, 'temperature'));
-    }
+    this.temperatureService?.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+      .on('get', (callback) => {
+        const value = this.currentValues.get('temperature') || 20;
+        callback(null, value);
+      });
 
-    // Energie-Service (als Prozent)
-    if (this.energyService) {
-      this.energyService.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
-        .onGet(this.getEnergyPercentage.bind(this));
-    }
+    this.energyService?.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+      .on('get', (callback) => {
+        const value = this.currentValues.get('energy_today') || 0;
+        callback(null, value);
+      });
 
-    // Status-Service
-    if (this.statusService) {
-      this.statusService.getCharacteristic(this.platform.Characteristic.ContactSensorState)
-        .onGet(this.getStatusValue.bind(this));
-    }
+    this.statusService?.getCharacteristic(this.platform.Characteristic.ContactSensorState)
+      .on('get', (callback) => {
+        const status = this.currentValues.get('status') || 0;
+        const state = status > 0 ? 
+          this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED :
+          this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+        callback(null, state);
+      });
 
-    // Leistung-Service
-    if (this.powerService) {
-      this.powerService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
-        .onGet(this.getCurrentValue.bind(this, 'power'));
-    }
+    this.voltageService?.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+      .on('get', (callback) => {
+        const value = this.currentValues.get('voltage_ac') || this.currentValues.get(`voltage_dc${this.device.stringNumber}`) || 0;
+        callback(null, value);
+      });
 
-    // Spannung-Service
-    if (this.voltageService) {
-      this.voltageService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
-        .onGet(this.getCurrentValue.bind(this, 'voltage'));
-    }
-
-    // Strom-Service
-    if (this.currentService) {
-      this.currentService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
-        .onGet(this.getCurrentValue.bind(this, 'current'));
-    }
+    this.currentService?.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+      .on('get', (callback) => {
+        const value = this.currentValues.get(`current_dc${this.device.stringNumber}`) || 0;
+        callback(null, value);
+      });
   }
 
   /**
-   * Aktuellen Wert abrufen
+   * Daten aktualisieren (wird von der Platform aufgerufen)
    */
-  private getCurrentValue(valueType: string): number {
-    const value = this.currentValues.get(valueType) || 0;
-    this.log.debug(`${this.device.name} ${valueType}: ${value}`);
-    return value;
-  }
-
-  /**
-   * Energie als Prozent berechnen
-   */
-  private getEnergyPercentage(): number {
-    const energyToday = this.currentValues.get('energy') || 0;
-    const maxEnergyPerDay = this.device.maxEnergyPerDay || 20;
-    const percentage = Math.min((energyToday / maxEnergyPerDay) * 100, 100);
-    return Math.round(percentage * 10) / 10; // Auf eine Dezimalstelle runden
-  }
-
-  /**
-   * Status-Wert abrufen
-   */
-  private getStatusValue(): number {
-    const power = this.currentValues.get('power') || 0;
-    // 0 = Contact Detected (Produziert), 1 = Contact Not Detected (Nicht produziert)
-    return power > 0 ? 0 : 1;
-  }
-
-  /**
-   * Wert aktualisieren
-   */
-  public updateValue(topic: string, value: number): void {
-    // Finde den entsprechenden Wert basierend auf dem Topic
-    const deviceTopics = this.device.topics || {};
-    let valueType = '';
-
-    for (const [key, topicValue] of Object.entries(deviceTopics)) {
-      if (topicValue === topic) {
-        valueType = key;
-        break;
+  updateData(data: any): void {
+    // Daten basierend auf Gerätetyp filtern
+    const deviceType = this.device.type;
+    
+    if (deviceType === 'main') {
+      // Hauptwechselrichter Daten
+      if (data.power !== undefined) {
+        this.currentValues.set('power', data.power);
+        this.powerService?.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, data.power);
       }
-    }
-
-    // Fallback: Topic direkt als Werttyp verwenden
-    if (!valueType) {
-      if (topic.includes('power')) {
-        valueType = 'power';
-      } else if (topic.includes('energy')) {
-        valueType = 'energy';
-      } else if (topic.includes('temperature')) {
-        valueType = 'temperature';
-      } else if (topic.includes('voltage')) {
-        valueType = 'voltage';
-      } else if (topic.includes('current')) {
-        valueType = 'current';
-      } else if (topic.includes('status')) {
-        valueType = 'status';
+      
+      if (data.temperature !== undefined) {
+        this.currentValues.set('temperature', data.temperature);
+        this.temperatureService?.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, data.temperature);
       }
-    }
-
-    if (valueType) {
-      this.currentValues.set(valueType, value);
-      this.log.debug(this.platform.i18n.t('accessory.updateValue', '{name} {type}: {value}')
-        .replace('{name}', this.device.name)
-        .replace('{type}', valueType)
-        .replace('{value}', value.toString()));
-
-      // HomeKit-Characteristics aktualisieren
-      this.updateHomeKitValue(valueType, value);
-    }
-  }
-
-  /**
-   * HomeKit-Characteristic aktualisieren
-   */
-  private updateHomeKitValue(valueType: string, value: number): void {
-    try {
-      switch (valueType) {
-        case 'power':
-          if (this.service) {
-            this.service.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, value);
-          }
-          if (this.powerService) {
-            this.powerService.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, value);
-          }
-          break;
-
-        case 'energy':
-          if (this.energyService) {
-            const percentage = this.getEnergyPercentage();
-            this.energyService.updateCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity, percentage);
-          }
-          break;
-
-        case 'temperature':
-          if (this.temperatureService) {
-            this.temperatureService.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, value);
-          }
-          break;
-
-        case 'voltage':
-          if (this.voltageService) {
-            this.voltageService.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, value);
-          }
-          break;
-
-        case 'current':
-          if (this.currentService) {
-            this.currentService.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, value);
-          }
-          break;
-
-        case 'status':
-          if (this.statusService) {
-            const statusValue = this.getStatusValue();
-            this.statusService.updateCharacteristic(this.platform.Characteristic.ContactSensorState, statusValue);
-          }
-          break;
+      
+      if (data.energy_today !== undefined) {
+        this.currentValues.set('energy_today', data.energy_today);
+        this.energyService?.updateCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity, data.energy_today);
       }
-    } catch (error) {
-      this.log.error(`Fehler beim Aktualisieren der HomeKit-Characteristic für ${valueType}:`, error);
+      
+      if (data.status !== undefined) {
+        this.currentValues.set('status', data.status);
+        const state = data.status > 0 ? 
+          this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED :
+          this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+        this.statusService?.updateCharacteristic(this.platform.Characteristic.ContactSensorState, state);
+      }
+      
+      if (data.voltage_ac !== undefined) {
+        this.currentValues.set('voltage_ac', data.voltage_ac);
+        this.voltageService?.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, data.voltage_ac);
+      }
+      
+    } else if (deviceType === 'string') {
+      // String-Daten
+      const stringNumber = this.device.stringNumber;
+      
+      if (data[`voltage_dc${stringNumber}`] !== undefined) {
+        this.currentValues.set(`voltage_dc${stringNumber}`, data[`voltage_dc${stringNumber}`]);
+        this.voltageService?.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, data[`voltage_dc${stringNumber}`]);
+      }
+      
+      if (data[`current_dc${stringNumber}`] !== undefined) {
+        this.currentValues.set(`current_dc${stringNumber}`, data[`current_dc${stringNumber}`]);
+        this.currentService?.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, data[`current_dc${stringNumber}`]);
+      }
+      
+      if (data[`power_dc${stringNumber}`] !== undefined) {
+        this.currentValues.set(`power_dc${stringNumber}`, data[`power_dc${stringNumber}`]);
+        this.powerService?.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, data[`power_dc${stringNumber}`]);
+      }
     }
   }
 }

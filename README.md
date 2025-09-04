@@ -149,7 +149,7 @@ Aktivieren Sie die Child Bridge-Funktion für bessere Stabilität:
 
 ## 🔗 Echte Kostal-Daten
 
-Das Plugin enthält ein integriertes Python-Script für echte Kostal-Daten:
+Das Plugin kommuniziert direkt mit deinem Kostal-Wechselrichter über die REST-API:
 
 ```bash
 # 1. Plugin installieren
@@ -158,24 +158,27 @@ npm install -g homebridge-kostal-inverter
 # 2. Python-Dependencies installieren
 bash install-python-deps.sh
 
-# 3. Kostal-Bridge konfigurieren
+# 3. Kostal-Wechselrichter konfigurieren
 npm run setup-kostal
 
-# 4. Kostal Data Bridge starten
-npm run start-kostal
-
-# 5. Homebridge starten (in separatem Terminal)
+# 4. Homebridge starten
 homebridge -D
 ```
+
+**Direkte Kostal-API-Integration:**
+- Kein MQTT-Broker erforderlich
+- Direkte Kommunikation mit Kostal-Wechselrichter
+- Automatische Datenabfrage alle 30 Sekunden
+- Unterstützt alle Kostal Plenticore Modelle
 
 **Installation der Python-Dependencies:**
 - Automatisch bei `npm install` (kann fehlschlagen auf manchen Systemen)
 - Manuell mit `bash install-python-deps.sh`
-- Oder direkt: `pip3 install paho-mqtt pykoplenti`
+- Oder direkt: `pip3 install pykoplenti`
 
 **Troubleshooting:**
-- Bei "externally-managed-environment" Fehler: `pip3 install --user paho-mqtt pykoplenti`
-- Bei Permission-Fehlern: `sudo pip3 install paho-mqtt pykoplenti`
+- Bei "externally-managed-environment" Fehler: `pip3 install --user pykoplenti`
+- Bei Permission-Fehlern: `sudo pip3 install pykoplenti`
 
 Siehe [KOSTAL-REAL-DATA-GUIDE.md](KOSTAL-REAL-DATA-GUIDE.md) für Details.
 

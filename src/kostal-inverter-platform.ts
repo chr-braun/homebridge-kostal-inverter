@@ -1,7 +1,7 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 import { KostalInverterAccessory } from './kostal-inverter-accessory';
-import * as mqtt from 'mqtt';
 import { I18nManager } from './i18n';
+import * as cron from 'node-cron';
 
 export class KostalInverterPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
@@ -9,8 +9,9 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
   public readonly accessories: PlatformAccessory[] = [];
   public readonly i18n: I18nManager;
 
-  private mqttClient: mqtt.MqttClient | null = null;
   private deviceData: Map<string, any> = new Map();
+  private kostalConfig: any = null;
+  private dataPollingInterval: NodeJS.Timeout | null = null;
 
   constructor(
     public readonly log: Logger,
@@ -21,11 +22,11 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
     
     this.log.info(this.i18n.t('platform.initialized', 'Kostal Inverter Platform initialisiert'));
 
-    // Homebridge Event Handlers
     this.api.on('didFinishLaunching', () => {
       this.log.debug('Homebridge startete - initialisiere Kostal Inverter');
-      this.initializeMQTT();
+      this.loadKostalConfig();
       this.discoverDevices();
+      this.startDataPolling();
     });
 
     this.api.on('shutdown', () => {
@@ -34,126 +35,113 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
   }
 
   /**
-   * MQTT-Verbindung initialisieren
+   * Kostal-Konfiguration laden
    */
-  private initializeMQTT(): void {
-    const mqttConfig = this.config.mqtt || {};
-    
-    if (!mqttConfig.host) {
-      this.log.error(this.i18n.t('platform.error.mqttHostMissing', 'MQTT Host ist nicht konfiguriert'));
+  private loadKostalConfig(): void {
+    try {
+      // Kostal-Konfiguration aus Homebridge-Config laden
+      const kostalConfig = this.config.kostal;
+      
+      if (kostalConfig && kostalConfig.host) {
+        this.kostalConfig = {
+          kostal: {
+            host: kostalConfig.host,
+            username: kostalConfig.username || 'pvserver',
+            password: kostalConfig.password || 'pvwr'
+          }
+        };
+        this.log.info(`Kostal-Konfiguration geladen: ${kostalConfig.host}`);
+      } else {
+        this.log.error('Keine Kostal-Konfiguration in der Homebridge-Konfiguration gefunden. Bitte konfiguriere die Kostal-Verbindung in der Homebridge-UI.');
+        return;
+      }
+    } catch (error) {
+      this.log.error('Fehler beim Laden der Kostal-Konfiguration:', error);
+    }
+  }
+
+  /**
+   * Daten-Polling starten
+   */
+  private startDataPolling(): void {
+    if (!this.kostalConfig) {
+      this.log.error('Keine Kostal-Konfiguration verfügbar');
       return;
     }
 
-    const mqttOptions: mqtt.IClientOptions = {
-      host: mqttConfig.host,
-      port: mqttConfig.port || 1883,
-      clientId: mqttConfig.clientId || 'homebridge-kostal',
-      clean: true,
-      reconnectPeriod: 5000,
-      connectTimeout: 30000,
-    };
+    // Sofort Daten abrufen
+    this.fetchKostalData();
 
-    // Authentifizierung falls konfiguriert
-    if (mqttConfig.username && mqttConfig.password) {
-      mqttOptions.username = mqttConfig.username;
-      mqttOptions.password = mqttConfig.password;
-    }
+    // Alle 30 Sekunden Daten abrufen
+    this.dataPollingInterval = setInterval(() => {
+      this.fetchKostalData();
+    }, 30000);
 
-    this.mqttClient = mqtt.connect(mqttOptions);
-
-    this.mqttClient.on('connect', () => {
-      this.log.info(this.i18n.t('mqtt.connected', 'MQTT verbunden'));
-      this.subscribeToTopics();
-    });
-
-    this.mqttClient.on('error', (error) => {
-      this.log.error('MQTT Fehler:', error);
-    });
-
-    this.mqttClient.on('close', () => {
-      this.log.warn(this.i18n.t('mqtt.disconnected', 'MQTT-Verbindung getrennt'));
-    });
-
-    this.mqttClient.on('message', (topic, message) => {
-      this.handleMQTTMessage(topic, message.toString());
-    });
+    this.log.info('Daten-Polling gestartet (alle 30 Sekunden)');
   }
 
   /**
-   * MQTT-Topics abonnieren
+   * Kostal-Daten abrufen
    */
-  private subscribeToTopics(): void {
-    if (!this.mqttClient) return;
+  private async fetchKostalData(): Promise<void> {
+    if (!this.kostalConfig) return;
 
-    const topics = this.config.mqtt?.topics || {
-      power: 'kostal/inverter/power',
-      energy: 'kostal/inverter/energy_today',
-      status: 'kostal/inverter/status',
-      temperature: 'kostal/inverter/temperature',
-      voltage: 'kostal/inverter/voltage_ac',
-      frequency: 'kostal/inverter/frequency'
-    };
-
-    // Hauptwechselrichter Topics
-    const mainTopics = [
-      topics.power,
-      topics.energy,
-      topics.status,
-      topics.temperature,
-      topics.voltage,
-      topics.frequency
-    ];
-
-    // String Topics (falls konfiguriert)
-    const stringCount = this.config.inverter?.strings || 0;
-    for (let i = 1; i <= stringCount; i++) {
-      mainTopics.push(`kostal/inverter/power_dc${i}`);
-      mainTopics.push(`kostal/inverter/voltage_dc${i}`);
-      mainTopics.push(`kostal/inverter/current_dc${i}`);
-    }
-
-    // Topics abonnieren
-    mainTopics.forEach(topic => {
-      this.mqttClient!.subscribe(topic, (err) => {
-        if (err) {
-          this.log.error(this.i18n.t('mqtt.subscribeError', 'Fehler beim Abonnieren von {topic}').replace('{topic}', topic), err);
-        } else {
-          this.log.debug(this.i18n.t('mqtt.subscribeSuccess', 'Abonniert: {topic}').replace('{topic}', topic));
-        }
-      });
-    });
-  }
-
-  /**
-   * MQTT-Nachrichten verarbeiten
-   */
-  private handleMQTTMessage(topic: string, message: string): void {
     try {
-      const value = parseFloat(message);
+      // Python-Script ausführen um Daten zu bekommen
+      const { spawn } = require('child_process');
+      const pythonScript = require('path').join(__dirname, '../kostal_data_bridge.py');
       
-      if (isNaN(value)) {
-        this.log.warn(this.i18n.t('mqtt.invalidValue', 'Ungültiger Wert für {topic}: {message}')
-          .replace('{topic}', topic)
-          .replace('{message}', message));
-        return;
-      }
-
-      // Daten speichern
-      this.deviceData.set(topic, value);
-
-      // Accessories aktualisieren
-      this.accessories.forEach(accessory => {
-        const inverterAccessory = accessory.context.device as KostalInverterAccessory;
-        if (inverterAccessory) {
-          inverterAccessory.updateValue(topic, value);
-        }
+      const python = spawn('python3', [pythonScript, '--get-data'], {
+        cwd: process.cwd()
       });
 
-      this.log.debug(`MQTT Update: ${topic} = ${value}`);
+      let output = '';
+      let error = '';
+
+      python.stdout.on('data', (data: Buffer) => {
+        output += data.toString();
+      });
+
+      python.stderr.on('data', (data: Buffer) => {
+        error += data.toString();
+      });
+
+      python.on('close', (code: number) => {
+        if (code === 0 && output) {
+          try {
+            const data = JSON.parse(output);
+            this.processKostalData(data);
+          } catch (parseError) {
+            this.log.error('Fehler beim Parsen der Kostal-Daten:', parseError);
+          }
+        } else if (error) {
+          this.log.error('Python-Script Fehler:', error);
+        }
+      });
 
     } catch (error) {
-      this.log.error(this.i18n.t('mqtt.messageError', 'Fehler beim Verarbeiten der MQTT-Nachricht {topic}').replace('{topic}', topic), error);
+      this.log.error('Fehler beim Abrufen der Kostal-Daten:', error);
     }
+  }
+
+  /**
+   * Kostal-Daten verarbeiten und Accessories aktualisieren
+   */
+  private processKostalData(data: any): void {
+    // Daten speichern
+    Object.keys(data).forEach(key => {
+      this.deviceData.set(key, data[key]);
+    });
+
+    // Accessories aktualisieren
+    this.accessories.forEach(accessory => {
+      const inverterAccessory = accessory.context.device as KostalInverterAccessory;
+      if (inverterAccessory) {
+        inverterAccessory.updateData(data);
+      }
+    });
+
+    this.log.debug('Kostal-Daten aktualisiert:', data);
   }
 
   /**
@@ -164,31 +152,25 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
     
     // Hauptwechselrichter erstellen
     const mainDevice = {
-      name: inverterConfig.name || 'Kostal Piko',
-      model: inverterConfig.model || 'Piko 10.0',
+      name: inverterConfig.name || 'Kostal Plenticore',
+      model: inverterConfig.model || 'Plenticore 10.0',
       serialNumber: inverterConfig.serialNumber || '123456789',
       type: 'main',
       maxPower: inverterConfig.maxPower || 10000,
-      maxEnergyPerDay: inverterConfig.maxEnergyPerDay || 20,
-      topics: this.config.mqtt?.topics || {}
+      maxEnergyPerDay: inverterConfig.maxEnergyPerDay || 20
     };
 
     this.createAccessory(mainDevice);
 
     // String-Accessories erstellen (falls konfiguriert)
-    const stringCount = inverterConfig.strings || 0;
+    const stringCount = inverterConfig.strings || 2; // Standard: 2 Strings
     for (let i = 1; i <= stringCount; i++) {
       const stringDevice = {
         name: `String ${i}`,
-        model: `${inverterConfig.model || 'Piko'} String ${i}`,
+        model: `${inverterConfig.model || 'Plenticore'} String ${i}`,
         serialNumber: `${inverterConfig.serialNumber || '123456789'}-S${i}`,
         type: 'string',
-        stringNumber: i,
-        topics: {
-          power: `kostal/inverter/power_dc${i}`,
-          voltage: `kostal/inverter/voltage_dc${i}`,
-          current: `kostal/inverter/current_dc${i}`
-        }
+        stringNumber: i
       };
 
       this.createAccessory(stringDevice);
@@ -230,9 +212,9 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
    * Aufräumen beim Beenden
    */
   private cleanup(): void {
-    if (this.mqttClient) {
-      this.mqttClient.end();
-      this.mqttClient = null;
+    if (this.dataPollingInterval) {
+      clearInterval(this.dataPollingInterval);
+      this.dataPollingInterval = null;
     }
   }
 }
