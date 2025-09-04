@@ -149,18 +149,26 @@ Aktivieren Sie die Child Bridge-Funktion für bessere Stabilität:
 
 ## 🔗 Echte Kostal-Daten
 
-Für echte Daten von Ihrem Kostal-Wechselrichter verwenden Sie das mitgelieferte Python-Script:
+Das Plugin enthält ein integriertes Python-Script für echte Kostal-Daten:
 
 ```bash
-# Setup ausführen
-./setup_kostal_bridge.sh
+# 1. Python-Dependencies installieren (automatisch bei npm install)
+npm install
 
-# Konfiguration anpassen
-# Bearbeite kostal_data_bridge.py
+# 2. Kostal-Bridge konfigurieren
+npm run setup-kostal
 
-# Kostal Data Bridge starten
-python3 kostal_data_bridge.py
+# 3. Kostal Data Bridge starten
+npm run start-kostal
+
+# 4. Homebridge starten (in separatem Terminal)
+homebridge -D
 ```
+
+**Automatische Installation:**
+- Python-Dependencies werden automatisch bei `npm install` installiert
+- Interaktive Konfiguration mit `npm run setup-kostal`
+- Einfacher Start mit `npm run start-kostal`
 
 Siehe [KOSTAL-REAL-DATA-GUIDE.md](KOSTAL-REAL-DATA-GUIDE.md) für Details.
 

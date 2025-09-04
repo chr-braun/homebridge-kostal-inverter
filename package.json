@@ -10,7 +10,10 @@
     "watch": "npm run build && npm link && nodemon",
     "prepublishOnly": "npm run build",
     "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix"
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "postinstall": "python3 -m pip install -r requirements.txt --quiet",
+    "setup-kostal": "python3 kostal_data_bridge.py --setup",
+    "start-kostal": "python3 kostal_data_bridge.py"
   },
   "keywords": [
     "homebridge-plugin",

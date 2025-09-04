@@ -5,9 +5,7 @@ tsconfig.json
 
 # Development files
 test-*.json
-kostal_data_bridge.py
 setup_kostal_bridge.sh
-requirements.txt
 
 # Documentation
 *.md

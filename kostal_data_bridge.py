@@ -8,11 +8,18 @@ import asyncio
 import json
 import logging
 import time
+import sys
+import os
 from datetime import datetime
 from typing import Dict, Any
 
-import paho.mqtt.client as mqtt
-from pykoplenti import ApiClient, AuthenticationError
+try:
+    import paho.mqtt.client as mqtt
+    from pykoplenti import ApiClient, AuthenticationError
+except ImportError as e:
+    print(f"❌ Fehlende Dependencies: {e}")
+    print("📦 Installiere Dependencies mit: pip3 install -r requirements.txt")
+    sys.exit(1)
 
 # Konfiguration
 KOSTAL_CONFIG = {
@@ -222,20 +229,79 @@ class KostalDataBridge:
             asyncio.create_task(self.kostal_client.logout())
         logger.info("Bridge beendet")
 
+def setup_config():
+    """Interaktive Konfiguration"""
+    print("🔧 Kostal Data Bridge Setup")
+    print("==========================")
+    print()
+    
+    # Kostal-Konfiguration
+    print("📡 Kostal-Wechselrichter Konfiguration:")
+    host = input(f"IP-Adresse [{KOSTAL_CONFIG['host']}]: ").strip() or KOSTAL_CONFIG['host']
+    username = input(f"Username [{KOSTAL_CONFIG['username']}]: ").strip() or KOSTAL_CONFIG['username']
+    password = input(f"Password [{KOSTAL_CONFIG['password']}]: ").strip() or KOSTAL_CONFIG['password']
+    
+    # MQTT-Konfiguration
+    print("\n📡 MQTT-Broker Konfiguration:")
+    mqtt_host = input(f"MQTT Host [{MQTT_CONFIG['host']}]: ").strip() or MQTT_CONFIG['host']
+    mqtt_port = input(f"MQTT Port [{MQTT_CONFIG['port']}]: ").strip() or str(MQTT_CONFIG['port'])
+    mqtt_username = input(f"MQTT Username (optional): ").strip()
+    mqtt_password = input(f"MQTT Password (optional): ").strip()
+    
+    # Konfiguration speichern
+    config = {
+        "kostal": {
+            "host": host,
+            "username": username,
+            "password": password
+        },
+        "mqtt": {
+            "host": mqtt_host,
+            "port": int(mqtt_port),
+            "username": mqtt_username if mqtt_username else None,
+            "password": mqtt_password if mqtt_password else None
+        }
+    }
+    
+    with open("kostal_config.json", "w") as f:
+        json.dump(config, f, indent=2)
+    
+    print("\n✅ Konfiguration gespeichert in kostal_config.json")
+    print("🚀 Starte die Bridge mit: python3 kostal_data_bridge.py")
+
+def load_config():
+    """Lade Konfiguration aus Datei"""
+    if os.path.exists("kostal_config.json"):
+        with open("kostal_config.json", "r") as f:
+            config = json.load(f)
+            return config["kostal"], config["mqtt"]
+    return KOSTAL_CONFIG, MQTT_CONFIG
+
 async def main():
     """Hauptfunktion"""
+    # Konfiguration laden
+    kostal_config, mqtt_config = load_config()
+    
+    # Globale Konfiguration aktualisieren
+    global KOSTAL_CONFIG, MQTT_CONFIG
+    KOSTAL_CONFIG.update(kostal_config)
+    MQTT_CONFIG.update(mqtt_config)
+    
     bridge = KostalDataBridge()
     await bridge.run_bridge()
 
 if __name__ == "__main__":
-    print("Kostal Data Bridge für Homebridge-Plugin")
-    print("========================================")
-    print(f"Kostal Host: {KOSTAL_CONFIG['host']}")
-    print(f"MQTT Broker: {MQTT_CONFIG['host']}:{MQTT_CONFIG['port']}")
-    print("Drücke Ctrl+C zum Beenden")
-    print()
-    
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\nBridge beendet.")
+    if len(sys.argv) > 1 and sys.argv[1] == "--setup":
+        setup_config()
+    else:
+        print("Kostal Data Bridge für Homebridge-Plugin")
+        print("========================================")
+        print(f"Kostal Host: {KOSTAL_CONFIG['host']}")
+        print(f"MQTT Broker: {MQTT_CONFIG['host']}:{MQTT_CONFIG['port']}")
+        print("Drücke Ctrl+C zum Beenden")
+        print()
+        
+        try:
+            asyncio.run(main())
+        except KeyboardInterrupt:
+            print("\nBridge beendet.")
