@@ -16,10 +16,6 @@ export declare class KostalEnergyGenerator implements DynamicPlatformPlugin {
      */
     private loadKostalConfig;
     /**
-     * Wechselrichter-Modell automatisch erkennen
-     */
-    private detectInverterModel;
-    /**
      * Daten-Polling starten
      */
     private startDataPolling;

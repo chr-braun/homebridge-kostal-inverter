@@ -38,12 +38,6 @@
             "description": "Passwort für Kostal-Wechselrichter (Standard: pvwr)",
             "placeholder": "Dein Kostal-Passwort"
           },
-          "autoDetectModel": {
-            "title": "Modell automatisch erkennen",
-            "type": "boolean",
-            "default": true,
-            "description": "Versuche das Wechselrichter-Modell automatisch zu erkennen"
-          }
         },
         "required": ["host"]
       },

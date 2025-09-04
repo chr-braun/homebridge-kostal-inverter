@@ -43,10 +43,7 @@ class KostalEnergyGenerator {
                     autoDetectModel: kostalConfig.autoDetectModel !== false
                 };
                 this.log.info(`Kostal-Konfiguration geladen: ${kostalConfig.host}`);
-                // Auto-Erkennung des Modells wenn aktiviert
-                if (this.kostalConfig.autoDetectModel) {
-                    this.detectInverterModel();
-                }
+                // Auto-Erkennung entfernt - funktioniert nicht zuverlässig
             }
             else {
                 this.log.error('Keine Kostal-Konfiguration gefunden. Bitte konfiguriere die Kostal-Verbindung in der Homebridge-UI.');
@@ -57,60 +54,7 @@ class KostalEnergyGenerator {
             this.log.error('Fehler beim Laden der Kostal-Konfiguration:', error);
         }
     }
-    /**
-     * Wechselrichter-Modell automatisch erkennen
-     */
-    async detectInverterModel() {
-        if (!this.kostalConfig)
-            return;
-        try {
-            this.log.info('🔍 Erkenne Wechselrichter-Modell automatisch...');
-            // Python-Script für Auto-Erkennung ausführen
-            const { spawn } = require('child_process');
-            const pythonScript = require('path').join(__dirname, '../kostal_data_bridge.py');
-            const python = spawn('python3', [pythonScript, '--detect'], {
-                cwd: process.cwd()
-            });
-            let output = '';
-            let error = '';
-            python.stdout.on('data', (data) => {
-                output += data.toString();
-            });
-            python.stderr.on('data', (data) => {
-                error += data.toString();
-            });
-            python.on('close', (code) => {
-                if (code === 0 && output) {
-                    try {
-                        const info = JSON.parse(output);
-                        if (info.model || info.serial_number) {
-                            this.log.info('✅ Wechselrichter-Modell erkannt:');
-                            if (info.model)
-                                this.log.info(`   Modell: ${info.model}`);
-                            if (info.serial_number)
-                                this.log.info(`   Seriennummer: ${info.serial_number}`);
-                            if (info.version)
-                                this.log.info(`   Version: ${info.version}`);
-                            if (info.type)
-                                this.log.info(`   Typ: ${info.type}`);
-                        }
-                        else {
-                            this.log.warn('⚠️ Wechselrichter-Modell konnte nicht automatisch erkannt werden');
-                        }
-                    }
-                    catch (parseError) {
-                        this.log.error('Fehler beim Parsen der Wechselrichter-Info:', parseError);
-                    }
-                }
-                else if (error) {
-                    this.log.error('Python-Script Fehler bei Auto-Erkennung:', error);
-                }
-            });
-        }
-        catch (error) {
-            this.log.error('Fehler bei der Auto-Erkennung des Wechselrichter-Modells:', error);
-        }
-    }
+    // Auto-Erkennung entfernt - funktioniert nicht zuverlässig
     /**
      * Daten-Polling starten
      */
@@ -225,16 +169,62 @@ class KostalEnergyGenerator {
      */
     discoverDevices() {
         const inverterConfig = this.config.inverter || {};
-        // Haupt-Energieerzeuger erstellen
+        const baseSerial = inverterConfig.serialNumber || '123456789';
+        // 1. Haupt-Energieerzeuger (Solarproduktion)
         const mainDevice = {
             name: inverterConfig.name || 'Kostal Solar Generator',
             model: inverterConfig.model || 'Plenticore 10.0',
-            serialNumber: inverterConfig.serialNumber || '123456789',
+            serialNumber: baseSerial,
             type: 'main',
             maxPower: inverterConfig.maxPower || 10000,
             maxEnergyPerDay: inverterConfig.maxEnergyPerDay || 20
         };
+        // 2. Hausverbrauch (Home Power)
+        const homePowerDevice = {
+            name: 'Hausverbrauch',
+            model: inverterConfig.model || 'Plenticore 10.0',
+            serialNumber: `${baseSerial}-home`,
+            type: 'home_power',
+            maxPower: inverterConfig.maxPower || 10000
+        };
+        // 3. Netzleistung (Grid Power - Bezug/Einspeisung)
+        const gridPowerDevice = {
+            name: 'Netzleistung',
+            model: inverterConfig.model || 'Plenticore 10.0',
+            serialNumber: `${baseSerial}-grid`,
+            type: 'grid_power',
+            maxPower: inverterConfig.maxPower || 10000
+        };
+        // 4. Wechselrichter-Temperatur
+        const temperatureDevice = {
+            name: 'Wechselrichter Temperatur',
+            model: inverterConfig.model || 'Plenticore 10.0',
+            serialNumber: `${baseSerial}-temp`,
+            type: 'temperature'
+        };
+        // 5. Tagesenergie
+        const dailyEnergyDevice = {
+            name: 'Tagesenergie',
+            model: inverterConfig.model || 'Plenticore 10.0',
+            serialNumber: `${baseSerial}-daily`,
+            type: 'daily_energy',
+            maxEnergy: inverterConfig.maxEnergyPerDay || 20
+        };
+        // 6. Status (Online/Offline)
+        const statusDevice = {
+            name: 'Wechselrichter Status',
+            model: inverterConfig.model || 'Plenticore 10.0',
+            serialNumber: `${baseSerial}-status`,
+            type: 'status'
+        };
+        // Alle Accessories erstellen
         this.createAccessory(mainDevice);
+        this.createAccessory(homePowerDevice);
+        this.createAccessory(gridPowerDevice);
+        this.createAccessory(temperatureDevice);
+        this.createAccessory(dailyEnergyDevice);
+        this.createAccessory(statusDevice);
+        this.log.info(`✅ ${this.accessories.length} Kostal-Accessories erstellt`);
     }
     /**
      * Accessory erstellen oder aus Cache laden

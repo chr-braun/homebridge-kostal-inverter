@@ -3,10 +3,7 @@ import { KostalEnergyGenerator } from './kostal-energy-generator';
 export declare class KostalEnergyAccessory {
     private readonly platform;
     private readonly accessory;
-    private powerService;
-    private temperatureService;
-    private energyService;
-    private statusService;
+    private mainService;
     private currentValues;
     private readonly device;
     private readonly log;
