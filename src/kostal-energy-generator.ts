@@ -10,6 +10,7 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
   private kostalConfig: any = null;
   private dataPollingInterval: NodeJS.Timeout | null = null;
   private logData: any[] = [];
+  private energyAccessories: Map<string, KostalEnergyAccessory> = new Map();
 
   constructor(
     public readonly log: Logger,
@@ -230,11 +231,8 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
    */
   private processKostalData(data: any): void {
     // Accessories aktualisieren
-    this.accessories.forEach(accessory => {
-      const energyAccessory = accessory.context.device as KostalEnergyAccessory;
-      if (energyAccessory) {
-        energyAccessory.updateData(data);
-      }
+    this.energyAccessories.forEach((energyAccessory, uuid) => {
+      energyAccessory.updateData(data);
     });
   }
 
@@ -276,8 +274,9 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
       this.api.registerPlatformAccessories('homebridge-kostal-inverter', 'KostalEnergyGenerator', [accessory]);
     }
 
-    // Accessory-Instanz erstellen
-    new KostalEnergyAccessory(this, this.accessories.find(a => a.UUID === uuid)!);
+    // Accessory-Instanz erstellen und speichern
+    const energyAccessory = new KostalEnergyAccessory(this, this.accessories.find(a => a.UUID === uuid)!);
+    this.energyAccessories.set(uuid, energyAccessory);
   }
 
   /**
@@ -286,6 +285,10 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
   configureAccessory(accessory: PlatformAccessory): void {
     this.log.info('Accessory aus Cache wiederhergestellt:', accessory.displayName);
     this.accessories.push(accessory);
+    
+    // KostalEnergyAccessory-Instanz erstellen und speichern
+    const energyAccessory = new KostalEnergyAccessory(this, accessory);
+    this.energyAccessories.set(accessory.UUID, energyAccessory);
   }
 
   /**

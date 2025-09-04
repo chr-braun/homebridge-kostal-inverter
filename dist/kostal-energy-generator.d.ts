@@ -9,6 +9,7 @@ export declare class KostalEnergyGenerator implements DynamicPlatformPlugin {
     private kostalConfig;
     private dataPollingInterval;
     private logData;
+    private energyAccessories;
     constructor(log: Logger, config: PlatformConfig, api: API);
     /**
      * Kostal-Konfiguration laden

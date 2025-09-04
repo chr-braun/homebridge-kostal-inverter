@@ -13,6 +13,7 @@ class KostalEnergyGenerator {
         this.kostalConfig = null;
         this.dataPollingInterval = null;
         this.logData = [];
+        this.energyAccessories = new Map();
         this.log.info('Kostal Solar Energy Generator initialisiert');
         this.api.on('didFinishLaunching', () => {
             this.log.debug('Homebridge startete - initialisiere Kostal Energy Generator');
@@ -211,11 +212,8 @@ class KostalEnergyGenerator {
      */
     processKostalData(data) {
         // Accessories aktualisieren
-        this.accessories.forEach(accessory => {
-            const energyAccessory = accessory.context.device;
-            if (energyAccessory) {
-                energyAccessory.updateData(data);
-            }
+        this.energyAccessories.forEach((energyAccessory, uuid) => {
+            energyAccessory.updateData(data);
         });
     }
     /**
@@ -252,8 +250,9 @@ class KostalEnergyGenerator {
             this.accessories.push(accessory);
             this.api.registerPlatformAccessories('homebridge-kostal-inverter', 'KostalEnergyGenerator', [accessory]);
         }
-        // Accessory-Instanz erstellen
-        new kostal_energy_accessory_1.KostalEnergyAccessory(this, this.accessories.find(a => a.UUID === uuid));
+        // Accessory-Instanz erstellen und speichern
+        const energyAccessory = new kostal_energy_accessory_1.KostalEnergyAccessory(this, this.accessories.find(a => a.UUID === uuid));
+        this.energyAccessories.set(uuid, energyAccessory);
     }
     /**
      * Accessory aus Cache konfigurieren
@@ -261,6 +260,9 @@ class KostalEnergyGenerator {
     configureAccessory(accessory) {
         this.log.info('Accessory aus Cache wiederhergestellt:', accessory.displayName);
         this.accessories.push(accessory);
+        // KostalEnergyAccessory-Instanz erstellen und speichern
+        const energyAccessory = new kostal_energy_accessory_1.KostalEnergyAccessory(this, accessory);
+        this.energyAccessories.set(accessory.UUID, energyAccessory);
     }
     /**
      * Aufräumen beim Beenden
