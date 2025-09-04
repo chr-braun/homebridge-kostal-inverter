@@ -1,7 +1,7 @@
 {
   "name": "homebridge-kostal-inverter",
   "displayName": "Kostal Inverter",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Homebridge plugin for Kostal solar inverters with MQTT support, multi-language UI, and child bridge capability",
   "main": "dist/index.js",
   "scripts": {
@@ -47,12 +47,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/homebridge-kostal-inverter.git"
+    "url": "git+https://github.com/chr-braun/homebridge-kostal-inverter.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/homebridge-kostal-inverter/issues"
+    "url": "https://github.com/chr-braun/homebridge-kostal-inverter/issues"
   },
-  "homepage": "https://github.com/yourusername/homebridge-kostal-inverter#readme",
+  "homepage": "https://github.com/chr-braun/homebridge-kostal-inverter#readme",
   "author": "Christian Braun",
   "license": "MIT"
 }
