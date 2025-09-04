@@ -170,16 +170,16 @@ class KostalEnergyGenerator {
     discoverDevices() {
         const inverterConfig = this.config.inverter || {};
         const baseSerial = inverterConfig.serialNumber || '123456789';
-        // 1. Haupt-Energieerzeuger (Solarproduktion)
+        // 1. Solarproduktion (Light Sensor - Watt als Lux)
         const mainDevice = {
-            name: inverterConfig.name || 'Kostal Solar Generator',
+            name: 'Solarproduktion',
             model: inverterConfig.model || 'Plenticore 10.0',
             serialNumber: baseSerial,
             type: 'main',
             maxPower: inverterConfig.maxPower || 10000,
             maxEnergyPerDay: inverterConfig.maxEnergyPerDay || 20
         };
-        // 2. Hausverbrauch (Home Power)
+        // 2. Hausverbrauch (Motion Sensor - Bewegung = Verbrauch)
         const homePowerDevice = {
             name: 'Hausverbrauch',
             model: inverterConfig.model || 'Plenticore 10.0',
@@ -187,7 +187,7 @@ class KostalEnergyGenerator {
             type: 'home_power',
             maxPower: inverterConfig.maxPower || 10000
         };
-        // 3. Netzleistung (Grid Power - Bezug/Einspeisung)
+        // 3. Netzleistung (Occupancy Sensor - Bezug/Einspeisung)
         const gridPowerDevice = {
             name: 'Netzleistung',
             model: inverterConfig.model || 'Plenticore 10.0',
@@ -195,14 +195,14 @@ class KostalEnergyGenerator {
             type: 'grid_power',
             maxPower: inverterConfig.maxPower || 10000
         };
-        // 4. Wechselrichter-Temperatur
+        // 4. Wechselrichter-Temperatur (Temperature Sensor)
         const temperatureDevice = {
             name: 'Wechselrichter Temperatur',
             model: inverterConfig.model || 'Plenticore 10.0',
             serialNumber: `${baseSerial}-temp`,
             type: 'temperature'
         };
-        // 5. Tagesenergie
+        // 5. Tagesenergie (Light Sensor - kWh als Lux)
         const dailyEnergyDevice = {
             name: 'Tagesenergie',
             model: inverterConfig.model || 'Plenticore 10.0',
@@ -210,7 +210,7 @@ class KostalEnergyGenerator {
             type: 'daily_energy',
             maxEnergy: inverterConfig.maxEnergyPerDay || 20
         };
-        // 6. Status (Online/Offline)
+        // 6. Status (Contact Sensor - Online/Offline)
         const statusDevice = {
             name: 'Wechselrichter Status',
             model: inverterConfig.model || 'Plenticore 10.0',

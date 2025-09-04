@@ -23,28 +23,25 @@ class KostalEnergyAccessory {
         const serviceId = `${deviceType}-${Date.now()}`;
         switch (deviceType) {
             case 'main':
-                // Haupt-Energieerzeuger als Outlet Service
+                // Solarproduktion als Light Sensor (Watt als Lux)
                 this.mainService = this.accessory.getService(deviceName) ||
-                    this.accessory.addService(this.platform.Service.Outlet, deviceName, serviceId);
+                    this.accessory.addService(this.platform.Service.LightSensor, deviceName, serviceId);
                 this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
-                this.mainService.setCharacteristic(this.platform.Characteristic.On, false);
-                this.mainService.setCharacteristic(this.platform.Characteristic.OutletInUse, false);
+                this.mainService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0.0001);
                 break;
             case 'home_power':
-                // Hausverbrauch als Outlet Service
+                // Hausverbrauch als Motion Sensor (Bewegung = Verbrauch)
                 this.mainService = this.accessory.getService(deviceName) ||
-                    this.accessory.addService(this.platform.Service.Outlet, deviceName, serviceId);
+                    this.accessory.addService(this.platform.Service.MotionSensor, deviceName, serviceId);
                 this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
-                this.mainService.setCharacteristic(this.platform.Characteristic.On, false);
-                this.mainService.setCharacteristic(this.platform.Characteristic.OutletInUse, false);
+                this.mainService.setCharacteristic(this.platform.Characteristic.MotionDetected, false);
                 break;
             case 'grid_power':
-                // Netzleistung als Outlet Service (positiv = Bezug, negativ = Einspeisung)
+                // Netzleistung als Occupancy Sensor (Bezug/Einspeisung)
                 this.mainService = this.accessory.getService(deviceName) ||
-                    this.accessory.addService(this.platform.Service.Outlet, deviceName, serviceId);
+                    this.accessory.addService(this.platform.Service.OccupancySensor, deviceName, serviceId);
                 this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
-                this.mainService.setCharacteristic(this.platform.Characteristic.On, false);
-                this.mainService.setCharacteristic(this.platform.Characteristic.OutletInUse, false);
+                this.mainService.setCharacteristic(this.platform.Characteristic.OccupancyDetected, this.platform.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
                 break;
             case 'temperature':
                 // Temperatur als Temperature Sensor
@@ -77,48 +74,33 @@ class KostalEnergyAccessory {
         const deviceType = this.device.type;
         switch (deviceType) {
             case 'main':
-                // Haupt-Energieerzeuger (Solarproduktion)
-                this.mainService.getCharacteristic(this.platform.Characteristic.On)
+                // Solarproduktion (Watt als Lux)
+                this.mainService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
                     .on('get', (callback) => {
                     const power = this.currentValues.get('power') || 0;
-                    const isOn = power > 0;
-                    callback(null, isOn);
-                });
-                this.mainService.getCharacteristic(this.platform.Characteristic.OutletInUse)
-                    .on('get', (callback) => {
-                    const power = this.currentValues.get('power') || 0;
-                    const inUse = power > 0;
-                    callback(null, inUse);
+                    // Watt zu Lux konvertieren (1 W = 1 Lux)
+                    const luxValue = Math.max(0.0001, Math.abs(power));
+                    callback(null, luxValue);
                 });
                 break;
             case 'home_power':
-                // Hausverbrauch
-                this.mainService.getCharacteristic(this.platform.Characteristic.On)
+                // Hausverbrauch (Bewegung = Verbrauch)
+                this.mainService.getCharacteristic(this.platform.Characteristic.MotionDetected)
                     .on('get', (callback) => {
                     const homePower = this.currentValues.get('home_power') || 0;
-                    const isOn = homePower > 0;
-                    callback(null, isOn);
-                });
-                this.mainService.getCharacteristic(this.platform.Characteristic.OutletInUse)
-                    .on('get', (callback) => {
-                    const homePower = this.currentValues.get('home_power') || 0;
-                    const inUse = homePower > 0;
-                    callback(null, inUse);
+                    const motionDetected = homePower > 0;
+                    callback(null, motionDetected);
                 });
                 break;
             case 'grid_power':
-                // Netzleistung (positiv = Bezug, negativ = Einspeisung)
-                this.mainService.getCharacteristic(this.platform.Characteristic.On)
+                // Netzleistung (Bezug/Einspeisung)
+                this.mainService.getCharacteristic(this.platform.Characteristic.OccupancyDetected)
                     .on('get', (callback) => {
                     const gridPower = this.currentValues.get('grid_power') || 0;
-                    const isOn = Math.abs(gridPower) > 0;
-                    callback(null, isOn);
-                });
-                this.mainService.getCharacteristic(this.platform.Characteristic.OutletInUse)
-                    .on('get', (callback) => {
-                    const gridPower = this.currentValues.get('grid_power') || 0;
-                    const inUse = Math.abs(gridPower) > 0;
-                    callback(null, inUse);
+                    const occupancyDetected = Math.abs(gridPower) > 0;
+                    callback(null, occupancyDetected ?
+                        this.platform.Characteristic.OccupancyDetected.OCCUPANCY_DETECTED :
+                        this.platform.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
                 });
                 break;
             case 'temperature':
@@ -161,30 +143,29 @@ class KostalEnergyAccessory {
         const deviceType = this.device.type;
         switch (deviceType) {
             case 'main':
-                // Haupt-Energieerzeuger (Solarproduktion)
+                // Solarproduktion (Watt als Lux)
                 if (data.power !== undefined) {
                     this.currentValues.set('power', data.power);
-                    const isOn = data.power > 0;
-                    this.mainService.updateCharacteristic(this.platform.Characteristic.On, isOn);
-                    this.mainService.updateCharacteristic(this.platform.Characteristic.OutletInUse, isOn);
+                    const luxValue = Math.max(0.0001, Math.abs(data.power));
+                    this.mainService.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, luxValue);
                 }
                 break;
             case 'home_power':
-                // Hausverbrauch
+                // Hausverbrauch (Bewegung = Verbrauch)
                 if (data.home_power !== undefined) {
                     this.currentValues.set('home_power', data.home_power);
-                    const isOn = data.home_power > 0;
-                    this.mainService.updateCharacteristic(this.platform.Characteristic.On, isOn);
-                    this.mainService.updateCharacteristic(this.platform.Characteristic.OutletInUse, isOn);
+                    const motionDetected = data.home_power > 0;
+                    this.mainService.updateCharacteristic(this.platform.Characteristic.MotionDetected, motionDetected);
                 }
                 break;
             case 'grid_power':
-                // Netzleistung (positiv = Bezug, negativ = Einspeisung)
+                // Netzleistung (Bezug/Einspeisung)
                 if (data.grid_power !== undefined) {
                     this.currentValues.set('grid_power', data.grid_power);
-                    const isOn = Math.abs(data.grid_power) > 0;
-                    this.mainService.updateCharacteristic(this.platform.Characteristic.On, isOn);
-                    this.mainService.updateCharacteristic(this.platform.Characteristic.OutletInUse, isOn);
+                    const occupancyDetected = Math.abs(data.grid_power) > 0;
+                    this.mainService.updateCharacteristic(this.platform.Characteristic.OccupancyDetected, occupancyDetected ?
+                        this.platform.Characteristic.OccupancyDetected.OCCUPANCY_DETECTED :
+                        this.platform.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
                 }
                 break;
             case 'temperature':
