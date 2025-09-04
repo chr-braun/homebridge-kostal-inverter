@@ -100,7 +100,7 @@
         "title": "Child Bridge",
         "type": "boolean",
         "default": false,
-        "description": "Plugin als Child Bridge ausführen (empfohlen für Stabilität)"
+        "description": "Plugin als Child Bridge ausführen (empfohlen für Stabilität und bessere Performance)"
       },
       "childBridgePort": {
         "title": "Child Bridge Port",
@@ -109,6 +109,17 @@
         "minimum": 1000,
         "maximum": 65535,
         "description": "Port für Child Bridge (nur wenn Child Bridge aktiviert)"
+      },
+      "childBridgeUsername": {
+        "title": "Child Bridge Username",
+        "type": "string",
+        "description": "Username für Child Bridge (wird automatisch generiert wenn leer)"
+      },
+      "childBridgePin": {
+        "title": "Child Bridge PIN",
+        "type": "string",
+        "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{3}$",
+        "description": "PIN für Child Bridge (Format: 123-45-678)"
       }
     },
     "required": ["kostal", "inverter"]

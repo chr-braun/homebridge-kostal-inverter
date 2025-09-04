@@ -19,6 +19,11 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
   ) {
     this.log.info('Kostal Solar Energy Generator initialisiert');
 
+    // Child Bridge Support
+    if (this.config.childBridge) {
+      this.log.info('Plugin läuft als Child Bridge');
+    }
+
     this.api.on('didFinishLaunching', () => {
       this.log.debug('Homebridge startete - initialisiere Kostal Energy Generator');
       this.loadKostalConfig();

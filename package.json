@@ -26,6 +26,12 @@
     "node": ">=18.0.0",
     "homebridge": ">=1.6.0"
   },
+  "homebridge": {
+    "pluginName": "homebridge-kostal-inverter",
+    "displayName": "Kostal Solar Energy Generator",
+    "category": "energy",
+    "hasChildBridges": true
+  },
   "dependencies": {
     "node-cron": "^3.0.3"
   },
