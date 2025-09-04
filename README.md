@@ -4,20 +4,45 @@ Ein Homebridge-Plugin für Kostal Solar-Wechselrichter mit direkter API-Integrat
 
 ## 🚀 Features
 
-- **Echte Kostal-API-Integration** - Direkte Verbindung zu deinem Kostal-Wechselrichter
+- **Echte Kostal-API-Integration** - Direkte Verbindung zu deinem Kostal-Wechselrichter über pykoplenti
 - **HomeKit Energy Generator** - Korrekte Darstellung als Energieerzeuger in Apple HomeKit
 - **GUI-Konfiguration** - Einfache Einrichtung über die Homebridge-UI
 - **Auto-Erkennung** - Automatische Erkennung des Wechselrichter-Modells
 - **Echtzeitdaten** - Live-Daten von deinem Kostal-Wechselrichter
+- **Child Bridge Support** - Läuft als separate Child Bridge für bessere Stabilität
 - **Mehrsprachig** - Unterstützung für Deutsch, Englisch, Französisch, Italienisch und Chinesisch
+- **Python-Integration** - Robuste Datenabfrage über Python-Script
+
+## 🚀 Erste Schritte
+
+### 1. Kostal-Wechselrichter vorbereiten
+- **IP-Adresse finden**: Wechselrichter-Menü → Netzwerk → IP-Adresse notieren
+- **Standard-Login**: `pvserver` / `pvwr` (oder deine eigenen Credentials)
+- **Netzwerk testen**: `ping 192.168.178.71` (deine IP)
+
+### 2. Plugin installieren
+```bash
+npm install homebridge-kostal-inverter@beta
+```
+
+### 3. Homebridge-UI konfigurieren
+- Homebridge-UI öffnen
+- "Add Platform" → "Kostal Solar Energy Generator"
+- IP-Adresse und Login-Daten eingeben
+- "Save" klicken
+
+### 4. HomeKit verbinden
+- QR-Code scannen oder PIN eingeben
+- Gerät in HomeKit-App hinzufügen
+- Daten in Echtzeit anzeigen
 
 ## 📊 Unterstützte Daten
 
-- **Leistung** - Aktuelle Produktion/Verbrauch
-- **Netzleistung** - Bezug vom Netz oder Einspeisung
-- **Hausverbrauch** - Dein aktueller Hausverbrauch
-- **Tagesenergie** - Heutige Energieproduktion
-- **Temperatur** - Wechselrichter-Temperatur
+- **Leistung** - Aktuelle Produktion/Verbrauch (Watt)
+- **Netzleistung** - Bezug vom Netz oder Einspeisung (Watt)
+- **Hausverbrauch** - Dein aktueller Hausverbrauch (Watt)
+- **Tagesenergie** - Heutige Energieproduktion (kWh)
+- **Temperatur** - Wechselrichter-Temperatur (°C)
 - **Status** - Online/Offline-Status
 - **DC-String Daten** - Spannung, Strom und Leistung pro String
 
@@ -25,51 +50,96 @@ Ein Homebridge-Plugin für Kostal Solar-Wechselrichter mit direkter API-Integrat
 
 ### Voraussetzungen
 
-- Node.js v18.15.0 oder höher
-- Homebridge v1.6.0 oder höher
-- Python 3.7 oder höher
-- Kostal Plenticore Wechselrichter
+- **Node.js** v18.15.0 oder höher
+- **Homebridge** v1.6.0 oder höher
+- **Python** 3.7 oder höher
+- **Kostal Plenticore** Wechselrichter (alle Modelle)
+- **Netzwerkzugang** zum Kostal-Wechselrichter
 
-### Plugin installieren
+### Schritt 1: Homebridge installieren
+
+Falls noch nicht installiert:
 
 ```bash
-npm install homebridge-kostal-inverter@beta
+# Homebridge global installieren
+npm install -g homebridge homebridge-config-ui-x
+
+# Homebridge als Service starten
+sudo systemctl enable homebridge
+sudo systemctl start homebridge
 ```
 
-### Python-Dependencies installieren
-
-Das Plugin installiert automatisch die benötigten Python-Pakete. Falls das fehlschlägt, führe manuell aus:
+### Schritt 2: Plugin installieren
 
 ```bash
+# Plugin aus NPM installieren
+npm install homebridge-kostal-inverter@beta
+
+# Oder für neueste Version
+npm install homebridge-kostal-inverter@latest
+```
+
+### Schritt 3: Python-Dependencies installieren
+
+Das Plugin installiert automatisch die benötigten Python-Pakete. Falls das fehlschlägt:
+
+```bash
+# Python-Pakete manuell installieren
 pip3 install pykoplenti aiohttp
+
+# Oder mit venv (empfohlen)
+python3 -m venv venv
+source venv/bin/activate
+pip install pykoplenti aiohttp
+```
+
+### Schritt 4: Homebridge neu starten
+
+```bash
+# Homebridge neu starten
+sudo systemctl restart homebridge
+
+# Oder manuell
+homebridge -D
 ```
 
 ## ⚙️ Konfiguration
 
 ### Über die Homebridge-UI
 
-1. Öffne die Homebridge-UI
-2. Gehe zu "Plugins" → "Kostal Inverter"
-3. Klicke auf "Add Platform"
-4. Konfiguriere deine Kostal-Verbindung:
+1. **Homebridge-UI öffnen**
+   - Gehe zu `http://localhost:8581` (oder deine Homebridge-IP)
+   - Melde dich mit deinen Homebridge-Credentials an
 
-#### Kostal-Verbindung
-- **IP-Adresse**: IP-Adresse deines Kostal-Wechselrichters (z.B. 192.168.178.71)
-- **Benutzername**: Standard `pvserver`
-- **Passwort**: Dein Kostal-Passwort
-- **Auto-Erkennung**: Aktiviert für automatische Modell-Erkennung
+2. **Plugin hinzufügen**
+   - Gehe zu "Plugins" → "Kostal Inverter"
+   - Klicke auf "Add Platform"
+   - Wähle "Kostal Solar Energy Generator"
 
-#### Wechselrichter-Konfiguration
-- **Generator Name**: Name in HomeKit
-- **Modell**: Wird automatisch erkannt
-- **Seriennummer**: Wird automatisch erkannt
-- **Maximale Leistung**: 1000-50000 W (Standard: 10000 W)
-- **Maximale Tagesenergie**: 1-100 kWh (Standard: 20 kWh)
+3. **Kostal-Verbindung konfigurieren**
+   - **IP-Adresse**: IP-Adresse deines Kostal-Wechselrichters (z.B. 192.168.178.71)
+   - **Benutzername**: Standard `pvserver`
+   - **Passwort**: Dein Kostal-Passwort
+   - **Auto-Erkennung**: ✅ Aktiviert für automatische Modell-Erkennung
 
-#### Erweiterte Einstellungen
-- **Abfrageintervall**: 10-300 Sekunden (Standard: 30s)
-- **Child Bridge**: Empfohlen für Stabilität
-- **Child Bridge Port**: 1000-65535 (Standard: 8581)
+4. **Wechselrichter-Konfiguration**
+   - **Generator Name**: Name in HomeKit (z.B. "Kostal Solar Generator")
+   - **Modell**: Wird automatisch erkannt
+   - **Seriennummer**: Wird automatisch erkannt
+   - **Maximale Leistung**: 1000-50000 W (Standard: 10000 W)
+   - **Maximale Tagesenergie**: 1-100 kWh (Standard: 20 kWh)
+
+5. **Erweiterte Einstellungen**
+   - **Abfrageintervall**: 10-300 Sekunden (Standard: 30s)
+   - **Child Bridge**: ✅ Empfohlen für Stabilität
+   - **Child Bridge Port**: 1000-65535 (Standard: 8581)
+   - **Child Bridge Username**: Wird automatisch generiert
+   - **Child Bridge PIN**: Format 123-45-678
+
+6. **Speichern und starten**
+   - Klicke auf "Save"
+   - Homebridge startet automatisch neu
+   - Plugin verbindet sich mit deinem Kostal-Wechselrichter
 
 ### Manuelle Konfiguration
 
@@ -115,23 +185,59 @@ Das Plugin erstellt folgende HomeKit-Services:
 
 ### Plugin wird nicht gefunden
 ```bash
+# Plugin neu verlinken
 npm link
+
+# Homebridge mit Plugin-Pfad starten
 homebridge --plugin-path /path/to/plugin
+
+# Oder Plugin neu installieren
+npm uninstall homebridge-kostal-inverter
+npm install homebridge-kostal-inverter@beta
 ```
 
 ### Python-Dependencies fehlen
 ```bash
+# Python-Pakete installieren
 pip3 install pykoplenti aiohttp
+
+# Oder mit venv
+python3 -m venv venv
+source venv/bin/activate
+pip install pykoplenti aiohttp
 ```
 
 ### Verbindungsfehler
-- Überprüfe die IP-Adresse deines Wechselrichters
-- Stelle sicher, dass der Wechselrichter erreichbar ist
-- Überprüfe Benutzername und Passwort
+- **IP-Adresse prüfen**: `ping 192.168.178.71`
+- **Port prüfen**: `telnet 192.168.178.71 80`
+- **HTTPS prüfen**: `curl -k https://192.168.178.71`
+- **Benutzername/Passwort**: Standard `pvserver`/`pvwr`
+- **Firewall**: Port 80/443 freigeben
 
 ### Keine Daten
-- Überprüfe die Homebridge-Logs
-- Teste die Verbindung mit: `python3 kostal_data_bridge.py --get-data`
+- **Homebridge-Logs prüfen**: `homebridge -D`
+- **Python-Script testen**: `python3 kostal_data_bridge.py --get-data`
+- **Auto-Erkennung testen**: `python3 kostal_data_bridge.py --detect`
+- **Wechselrichter-Status**: Ist der Wechselrichter online?
+
+### Child Bridge Probleme
+- **Port-Konflikt**: Anderen Port wählen
+- **Username/PIN**: Werden automatisch generiert
+- **Service-Status**: `sudo systemctl status homebridge`
+
+### Häufige Fehler
+
+#### "Custom UI threw an error"
+- **Lösung**: Plugin auf neueste Version aktualisieren
+- **Version**: `2.0.0-beta.4` oder höher
+
+#### "updateData is not a function"
+- **Lösung**: Plugin neu installieren
+- **Version**: `2.0.0-beta.3` oder höher
+
+#### "externally-managed-environment"
+- **Lösung**: Python-Pakete mit `--user` installieren
+- **Befehl**: `pip3 install --user pykoplenti aiohttp`
 
 ## 📝 Logs
 
