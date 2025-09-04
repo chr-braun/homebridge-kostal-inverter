@@ -5,13 +5,14 @@ Ein Homebridge-Plugin für Kostal Solar-Wechselrichter mit direkter API-Integrat
 ## 🚀 Features
 
 - **Echte Kostal-API-Integration** - Direkte Verbindung zu deinem Kostal-Wechselrichter über pykoplenti
-- **HomeKit Energy Generator** - Korrekte Darstellung als Energieerzeuger in Apple HomeKit
+- **HomeKit Sensoren** - 6 verschiedene Sensoren für alle Kostal-Daten
 - **GUI-Konfiguration** - Einfache Einrichtung über die Homebridge-UI
-- **Auto-Erkennung** - Automatische Erkennung des Wechselrichter-Modells
 - **Echtzeitdaten** - Live-Daten von deinem Kostal-Wechselrichter
 - **Child Bridge Support** - Läuft als separate Child Bridge für bessere Stabilität
 - **Mehrsprachig** - Unterstützung für Deutsch, Englisch, Französisch, Italienisch und Chinesisch
 - **Python-Integration** - Robuste Datenabfrage über Python-Script
+- **Apple Home App Integration** - Sensoren werden in der Energie-Übersicht angezeigt
+- **Automatisierungen** - Siri-Integration und energiebasierte Regeln möglich
 
 ## 🚀 Erste Schritte
 
@@ -33,18 +34,54 @@ npm install homebridge-kostal-inverter@beta
 
 ### 4. HomeKit verbinden
 - QR-Code scannen oder PIN eingeben
-- Gerät in HomeKit-App hinzufügen
-- Daten in Echtzeit anzeigen
+- **6 Sensoren** in HomeKit-App hinzufügen
+- Sensoren in der **Energie-Übersicht** anzeigen
+- **Automatisierungen** für energiebasierte Regeln einrichten
 
-## 📊 Unterstützte Daten
+## 📊 Unterstützte Sensoren
 
-- **Leistung** - Aktuelle Produktion/Verbrauch (Watt)
-- **Netzleistung** - Bezug vom Netz oder Einspeisung (Watt)
-- **Hausverbrauch** - Dein aktueller Hausverbrauch (Watt)
-- **Tagesenergie** - Heutige Energieproduktion (kWh)
-- **Temperatur** - Wechselrichter-Temperatur (°C)
-- **Status** - Online/Offline-Status
-- **DC-String Daten** - Spannung, Strom und Leistung pro String
+Das Plugin erstellt **6 verschiedene Sensoren** in HomeKit:
+
+### 🔋 **Energie-Sensoren**
+- **💡 Solarproduktion** - Light Sensor (Watt als Lux)
+- **💡 Tagesenergie** - Light Sensor (kWh als Lux)
+- **🏃 Hausverbrauch** - Motion Sensor (Bewegung = Verbrauch)
+- **👥 Netzleistung** - Occupancy Sensor (Bezug/Einspeisung)
+
+### 🌡️ **Status-Sensoren**
+- **🌡️ Wechselrichter Temperatur** - Temperature Sensor (°C)
+- **📡 Wechselrichter Status** - Contact Sensor (Online/Offline)
+
+### 📈 **Daten-Mapping**
+- **Solarproduktion**: Watt → Lux (1W = 1 Lux)
+- **Hausverbrauch**: Verbrauch > 0 → Bewegung erkannt
+- **Netzleistung**: Bezug/Einspeisung → Besetzung erkannt
+- **Temperatur**: Direkt in °C
+- **Tagesenergie**: kWh → Lux (1kWh = 1000 Lux)
+- **Status**: Online/Offline → Kontakt geöffnet/geschlossen
+
+## 🏠 HomeKit Integration
+
+### **Sensoren in der Apple Home App**
+Das Plugin erstellt **6 separate Sensoren**, die in der Apple Home App angezeigt werden:
+
+1. **💡 Solarproduktion** - Zeigt aktuelle Solarproduktion in Watt (als Lux)
+2. **🏃 Hausverbrauch** - Erkennt Verbrauch durch "Bewegung" (Motion Sensor)
+3. **👥 Netzleistung** - Erkennt Bezug/Einspeisung durch "Besetzung" (Occupancy Sensor)
+4. **🌡️ Wechselrichter Temperatur** - Temperatur in °C
+5. **💡 Tagesenergie** - Heutige Energieproduktion in kWh (als Lux)
+6. **📡 Wechselrichter Status** - Online/Offline Status
+
+### **Automatisierungen möglich**
+- **"Wenn Solarproduktion > 1000W"** → Heizung einschalten
+- **"Wenn Hausverbrauch erkannt"** → Licht dimmen
+- **"Wenn Temperatur > 60°C"** → Lüfter einschalten
+- **"Wenn Status offline"** → Benachrichtigung senden
+
+### **Siri-Integration**
+- **"Hey Siri, wie ist die Solarproduktion?"**
+- **"Hey Siri, ist der Wechselrichter online?"**
+- **"Hey Siri, wie warm ist der Wechselrichter?"**
 
 ## 🔧 Installation
 
@@ -229,7 +266,7 @@ pip install pykoplenti aiohttp
 
 #### "Custom UI threw an error"
 - **Lösung**: Plugin auf neueste Version aktualisieren
-- **Version**: `2.0.0-beta.4` oder höher
+- **Version**: `2.0.0-beta.6` oder höher
 
 #### "updateData is not a function"
 - **Lösung**: Plugin neu installieren
@@ -238,6 +275,15 @@ pip install pykoplenti aiohttp
 #### "externally-managed-environment"
 - **Lösung**: Python-Pakete mit `--user` installieren
 - **Befehl**: `pip3 install --user pykoplenti aiohttp`
+
+#### "Sensoren werden nicht angezeigt"
+- **Lösung**: Homebridge neu starten
+- **Prüfung**: In Home App → Sensoren Tab schauen
+- **Version**: `2.0.0-beta.6` oder höher
+
+#### "Automatisierungen funktionieren nicht"
+- **Lösung**: Sensoren in Home App zuerst hinzufügen
+- **Prüfung**: Sensoren müssen "Nicht unterstützt" Status haben
 
 ## 📝 Logs
 
