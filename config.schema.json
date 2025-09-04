@@ -1,0 +1,117 @@
+{
+  "pluginAlias": "KostalInverter",
+  "pluginType": "platform",
+  "singular": true,
+  "customUi": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Platform Name",
+        "type": "string",
+        "default": "Kostal Solar Energy Generator",
+        "description": "Name der Kostal Solar Energy Generator Platform"
+      },
+      "kostal": {
+        "title": "Kostal Wechselrichter Verbindung",
+        "type": "object",
+        "properties": {
+          "host": {
+            "title": "IP-Adresse",
+            "type": "string",
+            "format": "ipv4",
+            "description": "IP-Adresse deines Kostal-Wechselrichters (z.B. 192.168.178.71)",
+            "required": true,
+            "placeholder": "192.168.178.71"
+          },
+          "username": {
+            "title": "Benutzername",
+            "type": "string",
+            "default": "pvserver",
+            "description": "Benutzername für Kostal-Wechselrichter (Standard: pvserver)",
+            "placeholder": "pvserver"
+          },
+          "password": {
+            "title": "Passwort",
+            "type": "string",
+            "format": "password",
+            "default": "pvwr",
+            "description": "Passwort für Kostal-Wechselrichter (Standard: pvwr)",
+            "placeholder": "Dein Kostal-Passwort"
+          },
+          "autoDetectModel": {
+            "title": "Modell automatisch erkennen",
+            "type": "boolean",
+            "default": true,
+            "description": "Versuche das Wechselrichter-Modell automatisch zu erkennen"
+          }
+        },
+        "required": ["host"]
+      },
+      "inverter": {
+        "title": "Wechselrichter Konfiguration",
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Generator Name",
+            "type": "string",
+            "default": "Kostal Solar Generator",
+            "description": "Name des Energieerzeugers in HomeKit"
+          },
+          "model": {
+            "title": "Modell",
+            "type": "string",
+            "default": "Plenticore 10.0",
+            "description": "Modell des Kostal-Wechselrichters"
+          },
+          "serialNumber": {
+            "title": "Seriennummer",
+            "type": "string",
+            "default": "123456789",
+            "description": "Seriennummer des Wechselrichters"
+          },
+          "maxPower": {
+            "title": "Maximale Leistung (W)",
+            "type": "number",
+            "default": 10000,
+            "minimum": 1000,
+            "maximum": 50000,
+            "description": "Maximale Leistung des Wechselrichters in Watt"
+          },
+          "maxEnergyPerDay": {
+            "title": "Maximale Tagesenergie (kWh)",
+            "type": "number",
+            "default": 20,
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Maximale erwartete Tagesenergie in kWh"
+          }
+        },
+        "required": ["name"]
+      },
+      "pollingInterval": {
+        "title": "Abfrageintervall (Sekunden)",
+        "type": "number",
+        "default": 30,
+        "minimum": 10,
+        "maximum": 300,
+        "description": "Intervall für Datenabfrage vom Kostal-Wechselrichter"
+      },
+      "childBridge": {
+        "title": "Child Bridge",
+        "type": "boolean",
+        "default": false,
+        "description": "Plugin als Child Bridge ausführen (empfohlen für Stabilität)"
+      },
+      "childBridgePort": {
+        "title": "Child Bridge Port",
+        "type": "number",
+        "default": 8581,
+        "minimum": 1000,
+        "maximum": 65535,
+        "description": "Port für Child Bridge (nur wenn Child Bridge aktiviert)"
+      }
+    },
+    "required": ["kostal", "inverter"]
+  }
+}

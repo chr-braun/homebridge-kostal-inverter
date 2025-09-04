@@ -1,0 +1,31 @@
+{
+  "bridge": {
+    "name": "Homebridge Test",
+    "username": "CC:22:3D:E3:CE:30",
+    "port": 51826,
+    "pin": "031-45-154"
+  },
+  "platforms": [
+    {
+      "platform": "KostalInverter",
+      "name": "Kostal Solar Energy Generator",
+      "language": "de",
+      "kostal": {
+        "host": "192.168.178.71",
+        "username": "pvserver",
+        "password": "pny6F0y9tC7qXnQ",
+        "autoDetectModel": true
+      },
+      "inverter": {
+        "name": "Kostal Plenticore",
+        "model": "Plenticore 10.0",
+        "serialNumber": "123456789",
+        "maxPower": 10000,
+        "maxEnergyPerDay": 20,
+        "strings": 2
+      },
+      "pollingInterval": 30,
+      "childBridge": false
+    }
+  ]
+}
