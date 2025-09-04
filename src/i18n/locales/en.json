@@ -1,0 +1,93 @@
+{
+  "platform": {
+    "initialized": "Kostal Inverter Platform initialized",
+    "error": {
+      "mqttHostMissing": "MQTT Host is not configured"
+    }
+  },
+  "mqtt": {
+    "connected": "MQTT connected",
+    "disconnected": "MQTT connection lost",
+    "subscribeError": "Error subscribing to {topic}",
+    "subscribeSuccess": "Subscribed: {topic}",
+    "messageError": "Error processing MQTT message {topic}",
+    "invalidValue": "Invalid value for {topic}: {message}"
+  },
+  "accessory": {
+    "loaded": "Loading accessory from cache:",
+    "restored": "Restored accessory from cache:",
+    "created": "Creating new accessory:",
+    "updateValue": "{name} {type}: {value}"
+  },
+  "device": {
+    "main": "Main Inverter",
+    "string": "String",
+    "generic": "Generic"
+  },
+  "services": {
+    "solarPanel": "Solar Panel",
+    "temperature": "Temperature",
+    "energy": "Daily Energy",
+    "status": "Status",
+    "power": "Power",
+    "voltage": "Voltage",
+    "current": "Current"
+  },
+  "characteristics": {
+    "manufacturer": "Kostal",
+    "model": "Solar Inverter",
+    "serialNumber": "Serial Number"
+  },
+  "values": {
+    "power": "Power",
+    "energy": "Energy",
+    "temperature": "Temperature",
+    "status": "Status",
+    "voltage": "Voltage",
+    "current": "Current"
+  },
+  "status": {
+    "producing": "Producing Power",
+    "notProducing": "No Power",
+    "online": "Online",
+    "offline": "Offline"
+  },
+  "units": {
+    "watt": "W",
+    "kilowatt": "kW",
+    "kilowattHour": "kWh",
+    "volt": "V",
+    "ampere": "A",
+    "celsius": "°C",
+    "percent": "%"
+  },
+  "errors": {
+    "translationLoad": "Error loading translations",
+    "invalidLanguage": "Invalid language",
+    "unsupportedLanguage": "Unsupported language"
+  },
+  "config": {
+    "mqtt": {
+      "host": "MQTT Host",
+      "port": "MQTT Port",
+      "username": "MQTT Username",
+      "password": "MQTT Password",
+      "clientId": "MQTT Client ID"
+    },
+    "inverter": {
+      "name": "Inverter Name",
+      "model": "Inverter Model",
+      "serialNumber": "Serial Number",
+      "maxPower": "Maximum Power (W)",
+      "maxEnergyPerDay": "Maximum Daily Energy (kWh)",
+      "strings": "Number of Strings"
+    },
+    "general": {
+      "language": "Language",
+      "childBridge": "Child Bridge",
+      "childBridgePort": "Child Bridge Port",
+      "updateInterval": "Update Interval (seconds)",
+      "debug": "Debug Mode"
+    }
+  }
+}

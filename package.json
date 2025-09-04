@@ -1,0 +1,55 @@
+{
+  "name": "homebridge-kostal-inverter",
+  "displayName": "Kostal Inverter",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for Kostal solar inverters with MQTT support, multi-language UI, and child bridge capability",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rimraf ./dist && tsc && cp -r src/i18n/locales dist/i18n/",
+    "dev": "npm run build && npm link && homebridge -D",
+    "watch": "npm run build && npm link && nodemon",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
+  },
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge",
+    "kostal",
+    "inverter",
+    "solar",
+    "mqtt",
+    "energy",
+    "power",
+    "photovoltaic",
+    "renewable-energy"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "homebridge": ">=1.6.0"
+  },
+  "dependencies": {
+    "mqtt": "^5.3.5",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/node-cron": "^3.0.11",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "homebridge": "^1.6.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/homebridge-kostal-inverter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/homebridge-kostal-inverter/issues"
+  },
+  "homepage": "https://github.com/yourusername/homebridge-kostal-inverter#readme",
+  "author": "Christian Braun",
+  "license": "MIT"
+}

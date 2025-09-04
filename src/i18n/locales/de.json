@@ -1,0 +1,93 @@
+{
+  "platform": {
+    "initialized": "Kostal Inverter Platform initialisiert",
+    "error": {
+      "mqttHostMissing": "MQTT Host ist nicht konfiguriert"
+    }
+  },
+  "mqtt": {
+    "connected": "MQTT verbunden",
+    "disconnected": "MQTT-Verbindung getrennt",
+    "subscribeError": "Fehler beim Abonnieren von {topic}",
+    "subscribeSuccess": "Abonniert: {topic}",
+    "messageError": "Fehler beim Verarbeiten der MQTT-Nachricht {topic}",
+    "invalidValue": "Ungültiger Wert für {topic}: {message}"
+  },
+  "accessory": {
+    "loaded": "Lade Accessory aus Cache:",
+    "restored": "Wiederhergestellter Accessory aus Cache:",
+    "created": "Erstelle neuen Accessory:",
+    "updateValue": "{name} {type}: {value}"
+  },
+  "device": {
+    "main": "Hauptwechselrichter",
+    "string": "String",
+    "generic": "Allgemein"
+  },
+  "services": {
+    "solarPanel": "Solar Panel",
+    "temperature": "Temperatur",
+    "energy": "Tagesenergie",
+    "status": "Status",
+    "power": "Leistung",
+    "voltage": "Spannung",
+    "current": "Strom"
+  },
+  "characteristics": {
+    "manufacturer": "Kostal",
+    "model": "Solar Wechselrichter",
+    "serialNumber": "Seriennummer"
+  },
+  "values": {
+    "power": "Leistung",
+    "energy": "Energie",
+    "temperature": "Temperatur",
+    "status": "Status",
+    "voltage": "Spannung",
+    "current": "Strom"
+  },
+  "status": {
+    "producing": "Produziert Strom",
+    "notProducing": "Kein Strom",
+    "online": "Online",
+    "offline": "Offline"
+  },
+  "units": {
+    "watt": "W",
+    "kilowatt": "kW",
+    "kilowattHour": "kWh",
+    "volt": "V",
+    "ampere": "A",
+    "celsius": "°C",
+    "percent": "%"
+  },
+  "errors": {
+    "translationLoad": "Fehler beim Laden der Übersetzungen",
+    "invalidLanguage": "Ungültige Sprache",
+    "unsupportedLanguage": "Nicht unterstützte Sprache"
+  },
+  "config": {
+    "mqtt": {
+      "host": "MQTT Host",
+      "port": "MQTT Port",
+      "username": "MQTT Benutzername",
+      "password": "MQTT Passwort",
+      "clientId": "MQTT Client ID"
+    },
+    "inverter": {
+      "name": "Wechselrichter Name",
+      "model": "Wechselrichter Modell",
+      "serialNumber": "Seriennummer",
+      "maxPower": "Maximale Leistung (W)",
+      "maxEnergyPerDay": "Maximale Tagesenergie (kWh)",
+      "strings": "Anzahl Strings"
+    },
+    "general": {
+      "language": "Sprache",
+      "childBridge": "Child Bridge",
+      "childBridgePort": "Child Bridge Port",
+      "updateInterval": "Update-Intervall (Sekunden)",
+      "debug": "Debug-Modus"
+    }
+  }
+}

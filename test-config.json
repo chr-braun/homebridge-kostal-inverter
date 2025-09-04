@@ -1,0 +1,31 @@
+{
+  "platform": "KostalInverter",
+  "name": "Kostal Solar Test",
+  "mqtt": {
+    "host": "192.168.1.100",
+    "port": 1883,
+    "username": "testuser",
+    "password": "testpass",
+    "clientId": "homebridge-kostal-test",
+    "topics": {
+      "power": "kostal/inverter/power",
+      "energy": "kostal/inverter/energy_today",
+      "status": "kostal/inverter/status",
+      "temperature": "kostal/inverter/temperature",
+      "voltage": "kostal/inverter/voltage_ac",
+      "frequency": "kostal/inverter/frequency"
+    }
+  },
+  "inverter": {
+    "name": "Kostal Piko Test",
+    "model": "Piko 10.0",
+    "serialNumber": "TEST123456789",
+    "maxPower": 10000,
+    "maxEnergyPerDay": 20,
+    "strings": 2
+  },
+  "language": "de",
+  "childBridge": false,
+  "updateInterval": 30,
+  "debug": true
+}

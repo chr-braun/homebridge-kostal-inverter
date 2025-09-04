@@ -1,0 +1,321 @@
+{
+  "pluginAlias": "Kostal Inverter",
+  "pluginType": "platform",
+  "headerDisplay": "Kostal Solar Wechselrichter Plugin",
+  "headerDescription": "Überwachen Sie Ihren Kostal-Solarwechselrichter über MQTT in HomeKit",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Platform Name",
+        "type": "string",
+        "default": "Kostal Solar",
+        "description": "Name der Plattform in Homebridge"
+      },
+      "mqtt": {
+        "title": "MQTT Konfiguration",
+        "type": "object",
+        "properties": {
+          "host": {
+            "title": "MQTT Host",
+            "type": "string",
+            "format": "ipv4",
+            "description": "IP-Adresse Ihres MQTT-Brokers",
+            "required": true
+          },
+          "port": {
+            "title": "MQTT Port",
+            "type": "integer",
+            "default": 1883,
+            "minimum": 1,
+            "maximum": 65535,
+            "description": "Port Ihres MQTT-Brokers"
+          },
+          "username": {
+            "title": "MQTT Benutzername",
+            "type": "string",
+            "description": "Benutzername für MQTT (optional)"
+          },
+          "password": {
+            "title": "MQTT Passwort",
+            "type": "string",
+            "format": "password",
+            "description": "Passwort für MQTT (optional)"
+          },
+          "clientId": {
+            "title": "MQTT Client ID",
+            "type": "string",
+            "default": "homebridge-kostal",
+            "description": "Eindeutige Client-ID für MQTT"
+          },
+          "topics": {
+            "title": "MQTT Topics",
+            "type": "object",
+            "properties": {
+              "power": {
+                "title": "Leistung Topic",
+                "type": "string",
+                "default": "kostal/inverter/power",
+                "description": "MQTT-Topic für aktuelle Leistung"
+              },
+              "energy": {
+                "title": "Energie Topic",
+                "type": "string",
+                "default": "kostal/inverter/energy_today",
+                "description": "MQTT-Topic für Tagesenergie"
+              },
+              "status": {
+                "title": "Status Topic",
+                "type": "string",
+                "default": "kostal/inverter/status",
+                "description": "MQTT-Topic für Wechselrichter-Status"
+              },
+              "temperature": {
+                "title": "Temperatur Topic",
+                "type": "string",
+                "default": "kostal/inverter/temperature",
+                "description": "MQTT-Topic für Temperatur"
+              },
+              "voltage": {
+                "title": "Spannung Topic",
+                "type": "string",
+                "default": "kostal/inverter/voltage_ac",
+                "description": "MQTT-Topic für AC-Spannung"
+              },
+              "frequency": {
+                "title": "Frequenz Topic",
+                "type": "string",
+                "default": "kostal/inverter/frequency",
+                "description": "MQTT-Topic für Netzfrequenz"
+              }
+            }
+          }
+        },
+        "required": ["host"]
+      },
+      "inverter": {
+        "title": "Wechselrichter Konfiguration",
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Wechselrichter Name",
+            "type": "string",
+            "default": "Kostal Piko",
+            "description": "Anzeigename des Wechselrichters"
+          },
+          "model": {
+            "title": "Wechselrichter Modell",
+            "type": "string",
+            "default": "Piko 10.0",
+            "description": "Modell des Wechselrichters"
+          },
+          "serialNumber": {
+            "title": "Seriennummer",
+            "type": "string",
+            "default": "123456789",
+            "description": "Seriennummer des Wechselrichters"
+          },
+          "maxPower": {
+            "title": "Maximale Leistung (W)",
+            "type": "integer",
+            "default": 10000,
+            "minimum": 1000,
+            "maximum": 50000,
+            "description": "Maximale Leistung in Watt"
+          },
+          "maxEnergyPerDay": {
+            "title": "Maximale Tagesenergie (kWh)",
+            "type": "integer",
+            "default": 20,
+            "minimum": 5,
+            "maximum": 100,
+            "description": "Maximale Tagesenergie in kWh für Prozentberechnung"
+          },
+          "strings": {
+            "title": "Anzahl Strings",
+            "type": "integer",
+            "default": 2,
+            "minimum": 0,
+            "maximum": 4,
+            "description": "Anzahl der DC-Strings (0 = nur Hauptwechselrichter)"
+          }
+        }
+      },
+      "language": {
+        "title": "Sprache",
+        "type": "string",
+        "default": "de",
+        "enum": [
+          "de",
+          "en",
+          "fr",
+          "it",
+          "zh"
+        ],
+        "enumNames": [
+          "Deutsch",
+          "English",
+          "Français",
+          "Italiano",
+          "中文"
+        ],
+        "description": "Sprache für Logs und Benutzeroberfläche"
+      },
+      "childBridge": {
+        "title": "Child Bridge",
+        "type": "boolean",
+        "default": false,
+        "description": "Plugin als separate Bridge laufen lassen (empfohlen für bessere Stabilität)"
+      },
+      "childBridgePort": {
+        "title": "Child Bridge Port",
+        "type": "integer",
+        "default": 8581,
+        "minimum": 8000,
+        "maximum": 9000,
+        "description": "Port für Child Bridge (nur wenn Child Bridge aktiviert ist)"
+      },
+      "updateInterval": {
+        "title": "Update-Intervall (Sekunden)",
+        "type": "integer",
+        "default": 30,
+        "minimum": 10,
+        "maximum": 300,
+        "description": "Intervall für HomeKit-Updates in Sekunden"
+      },
+      "debug": {
+        "title": "Debug-Modus",
+        "type": "boolean",
+        "default": false,
+        "description": "Aktiviert erweiterte Logging-Ausgaben"
+      }
+    },
+    "required": ["name", "mqtt"]
+  },
+  "form": [
+    {
+      "type": "string",
+      "title": "Platform Name",
+      "key": "name"
+    },
+    {
+      "type": "fieldset",
+      "title": "MQTT Konfiguration",
+      "items": [
+        {
+          "type": "string",
+          "title": "MQTT Host",
+          "key": "mqtt.host",
+          "format": "ipv4"
+        },
+        {
+          "type": "number",
+          "title": "MQTT Port",
+          "key": "mqtt.port",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        {
+          "type": "string",
+          "title": "MQTT Benutzername",
+          "key": "mqtt.username"
+        },
+        {
+          "type": "password",
+          "title": "MQTT Passwort",
+          "key": "mqtt.password"
+        },
+        {
+          "type": "string",
+          "title": "MQTT Client ID",
+          "key": "mqtt.clientId"
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Wechselrichter Konfiguration",
+      "items": [
+        {
+          "type": "string",
+          "title": "Wechselrichter Name",
+          "key": "inverter.name"
+        },
+        {
+          "type": "string",
+          "title": "Wechselrichter Modell",
+          "key": "inverter.model"
+        },
+        {
+          "type": "string",
+          "title": "Seriennummer",
+          "key": "inverter.serialNumber"
+        },
+        {
+          "type": "number",
+          "title": "Maximale Leistung (W)",
+          "key": "inverter.maxPower",
+          "minimum": 1000,
+          "maximum": 50000
+        },
+        {
+          "type": "number",
+          "title": "Maximale Tagesenergie (kWh)",
+          "key": "inverter.maxEnergyPerDay",
+          "minimum": 5,
+          "maximum": 100
+        },
+        {
+          "type": "number",
+          "title": "Anzahl Strings",
+          "key": "inverter.strings",
+          "minimum": 0,
+          "maximum": 4
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Allgemeine Einstellungen",
+      "items": [
+        {
+          "type": "select",
+          "title": "Sprache",
+          "key": "language",
+          "items": [
+            { "title": "Deutsch", "value": "de" },
+            { "title": "English", "value": "en" },
+            { "title": "Français", "value": "fr" },
+            { "title": "Italiano", "value": "it" },
+            { "title": "中文", "value": "zh" }
+          ]
+        },
+        {
+          "type": "checkbox",
+          "title": "Child Bridge",
+          "key": "childBridge"
+        },
+        {
+          "type": "number",
+          "title": "Child Bridge Port",
+          "key": "childBridgePort",
+          "minimum": 8000,
+          "maximum": 9000,
+          "condition": "model.childBridge === true"
+        },
+        {
+          "type": "number",
+          "title": "Update-Intervall (Sekunden)",
+          "key": "updateInterval",
+          "minimum": 10,
+          "maximum": 300
+        },
+        {
+          "type": "checkbox",
+          "title": "Debug-Modus",
+          "key": "debug"
+        }
+      ]
+    }
+  ]
+}
