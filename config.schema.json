@@ -90,6 +90,40 @@
         "maximum": 300,
         "description": "Intervall für Datenabfrage vom Kostal-Wechselrichter"
       },
+      "dailyReports": {
+        "title": "Tägliche Solar-Berichte",
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "title": "Berichte aktivieren",
+            "type": "boolean",
+            "default": true,
+            "description": "Tägliche Solar-Berichte mit Push-Benachrichtigungen aktivieren"
+          },
+          "time": {
+            "title": "Berichtszeit",
+            "type": "string",
+            "default": "20:00",
+            "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
+            "description": "Uhrzeit für tägliche Berichte (HH:MM Format)"
+          },
+          "style": {
+            "title": "Berichtsstil",
+            "type": "string",
+            "enum": ["motion", "notification"],
+            "default": "motion",
+            "description": "Art der Benachrichtigung (Motion Sensor oder direkte Benachrichtigung)"
+          },
+          "language": {
+            "title": "Berichtssprache",
+            "type": "string",
+            "enum": ["de", "en", "fr", "it", "zh"],
+            "default": "de",
+            "description": "Sprache für die täglichen Berichte"
+          }
+        },
+        "required": ["enabled", "time", "style", "language"]
+      },
       "childBridge": {
         "title": "Child Bridge",
         "type": "boolean",
