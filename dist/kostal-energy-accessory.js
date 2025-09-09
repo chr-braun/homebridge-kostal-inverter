@@ -77,15 +77,22 @@ class KostalEnergyAccessory {
                 // Solarproduktion (Watt als Lux)
                 this.mainService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
                     .on('get', (callback) => {
+                    let callbackCalled = false;
+                    const safeCallback = (error, value) => {
+                        if (!callbackCalled) {
+                            callbackCalled = true;
+                            callback(error, value);
+                        }
+                    };
                     try {
                         const power = this.currentValues.get('power') || 0;
                         // Watt zu Lux konvertieren (1 W = 1 Lux)
                         const luxValue = Math.max(0.0001, Math.abs(power));
-                        callback(null, luxValue);
+                        safeCallback(null, luxValue);
                     }
                     catch (error) {
                         this.log.error('Fehler beim Abrufen der Solarproduktion:', error);
-                        callback(error instanceof Error ? error : new Error(String(error)));
+                        safeCallback(error instanceof Error ? error : new Error(String(error)));
                     }
                 });
                 break;
@@ -93,14 +100,21 @@ class KostalEnergyAccessory {
                 // Hausverbrauch (Bewegung = Verbrauch)
                 this.mainService.getCharacteristic(this.platform.Characteristic.MotionDetected)
                     .on('get', (callback) => {
+                    let callbackCalled = false;
+                    const safeCallback = (error, value) => {
+                        if (!callbackCalled) {
+                            callbackCalled = true;
+                            callback(error, value);
+                        }
+                    };
                     try {
                         const homePower = this.currentValues.get('home_power') || 0;
                         const motionDetected = homePower > 0;
-                        callback(null, motionDetected);
+                        safeCallback(null, motionDetected);
                     }
                     catch (error) {
                         this.log.error('Fehler beim Abrufen des Hausverbrauchs:', error);
-                        callback(error instanceof Error ? error : new Error(String(error)));
+                        safeCallback(error instanceof Error ? error : new Error(String(error)));
                     }
                 });
                 break;
@@ -108,16 +122,23 @@ class KostalEnergyAccessory {
                 // Netzleistung (Bezug/Einspeisung)
                 this.mainService.getCharacteristic(this.platform.Characteristic.OccupancyDetected)
                     .on('get', (callback) => {
+                    let callbackCalled = false;
+                    const safeCallback = (error, value) => {
+                        if (!callbackCalled) {
+                            callbackCalled = true;
+                            callback(error, value);
+                        }
+                    };
                     try {
                         const gridPower = this.currentValues.get('grid_power') || 0;
                         const occupancyDetected = Math.abs(gridPower) > 0;
-                        callback(null, occupancyDetected ?
+                        safeCallback(null, occupancyDetected ?
                             this.platform.Characteristic.OccupancyDetected.OCCUPANCY_DETECTED :
                             this.platform.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
                     }
                     catch (error) {
                         this.log.error('Fehler beim Abrufen der Netzleistung:', error);
-                        callback(error instanceof Error ? error : new Error(String(error)));
+                        safeCallback(error instanceof Error ? error : new Error(String(error)));
                     }
                 });
                 break;
@@ -125,13 +146,20 @@ class KostalEnergyAccessory {
                 // Temperatur
                 this.mainService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
                     .on('get', (callback) => {
+                    let callbackCalled = false;
+                    const safeCallback = (error, value) => {
+                        if (!callbackCalled) {
+                            callbackCalled = true;
+                            callback(error, value);
+                        }
+                    };
                     try {
                         const value = this.currentValues.get('temperature') || 20;
-                        callback(null, value);
+                        safeCallback(null, value);
                     }
                     catch (error) {
                         this.log.error('Fehler beim Abrufen der Temperatur:', error);
-                        callback(error instanceof Error ? error : new Error(String(error)));
+                        safeCallback(error instanceof Error ? error : new Error(String(error)));
                     }
                 });
                 break;
@@ -139,15 +167,22 @@ class KostalEnergyAccessory {
                 // Tagesenergie (kWh als Lux)
                 this.mainService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
                     .on('get', (callback) => {
+                    let callbackCalled = false;
+                    const safeCallback = (error, value) => {
+                        if (!callbackCalled) {
+                            callbackCalled = true;
+                            callback(error, value);
+                        }
+                    };
                     try {
                         const value = this.currentValues.get('energy_today') || 0;
                         // kWh zu Lux konvertieren (1 kWh = 1000 Lux)
                         const luxValue = Math.max(0.0001, value * 1000);
-                        callback(null, luxValue);
+                        safeCallback(null, luxValue);
                     }
                     catch (error) {
                         this.log.error('Fehler beim Abrufen der Tagesenergie:', error);
-                        callback(error instanceof Error ? error : new Error(String(error)));
+                        safeCallback(error instanceof Error ? error : new Error(String(error)));
                     }
                 });
                 break;
@@ -155,16 +190,23 @@ class KostalEnergyAccessory {
                 // Status
                 this.mainService.getCharacteristic(this.platform.Characteristic.ContactSensorState)
                     .on('get', (callback) => {
+                    let callbackCalled = false;
+                    const safeCallback = (error, value) => {
+                        if (!callbackCalled) {
+                            callbackCalled = true;
+                            callback(error, value);
+                        }
+                    };
                     try {
                         const status = this.currentValues.get('status') || 0;
                         const state = status > 0 ?
                             this.platform.Characteristic.ContactSensorState.CONTACT_DETECTED :
                             this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
-                        callback(null, state);
+                        safeCallback(null, state);
                     }
                     catch (error) {
                         this.log.error('Fehler beim Abrufen des Status:', error);
-                        callback(error instanceof Error ? error : new Error(String(error)));
+                        safeCallback(error instanceof Error ? error : new Error(String(error)));
                     }
                 });
                 break;
