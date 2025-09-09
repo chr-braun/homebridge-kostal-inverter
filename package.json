@@ -1,7 +1,7 @@
 {
   "name": "homebridge-kostal-inverter",
   "displayName": "Kostal Solar Energy Generator",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Homebridge plugin for Kostal solar inverters as energy generators with real-time data logging",
   "main": "dist/index.js",
   "scripts": {
@@ -32,6 +32,7 @@
     "category": "energy",
     "hasChildBridges": true
   },
+  "configSchema": "config.schema.json",
   "dependencies": {
     "node-cron": "^3.0.3"
   },

@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "KostalInverter",
+  "pluginAlias": "KostalSolarEnergyGenerator",
   "pluginType": "platform",
   "singular": true,
   "schema": {
