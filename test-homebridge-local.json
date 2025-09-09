@@ -1,0 +1,27 @@
+{
+  "bridge": {
+    "name": "Test Homebridge",
+    "username": "CC:22:3D:E3:CE:30",
+    "port": 51826,
+    "pin": "031-45-154"
+  },
+  "accessories": [],
+  "platforms": [
+    {
+      "platform": "KostalSolarEnergyGenerator",
+      "name": "Kostal Solar Energy Generator",
+      "language": "de",
+      "kostal": {
+        "host": "192.168.178.100",
+        "username": "pvserver",
+        "password": "pvwr"
+      },
+      "dailyReports": {
+        "enabled": true,
+        "time": "20:00",
+        "style": "motion",
+        "language": "de"
+      }
+    }
+  ]
+}

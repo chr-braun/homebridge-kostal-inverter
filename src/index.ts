@@ -2,5 +2,5 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { KostalEnergyGenerator } from './kostal-energy-generator';
 
 export = (api: API) => {
-  api.registerPlatform('KostalInverter', KostalEnergyGenerator);
+  api.registerPlatform('KostalSolarEnergyGenerator', KostalEnergyGenerator);
 };
