@@ -2,7 +2,10 @@
   "platform": {
     "initialized": "Kostal Inverter Platform initialisiert",
     "error": {
-      "mqttHostMissing": "MQTT Host ist nicht konfiguriert"
+      "mqttHostMissing": "MQTT Host ist nicht konfiguriert",
+      "inverterConnectionFailed": "Verbindung zum Kostal Wechselrichter fehlgeschlagen",
+      "apiError": "API-Fehler: {error}",
+      "dataRetrievalFailed": "Datenabruf vom Wechselrichter fehlgeschlagen"
     }
   },
   "mqtt": {
@@ -80,14 +83,68 @@
       "serialNumber": "Seriennummer",
       "maxPower": "Maximale Leistung (W)",
       "maxEnergyPerDay": "Maximale Tagesenergie (kWh)",
-      "strings": "Anzahl Strings"
+      "strings": "Anzahl Strings",
+      "host": "Wechselrichter IP-Adresse",
+      "username": "Wechselrichter Benutzername",
+      "password": "Wechselrichter Passwort"
     },
     "general": {
       "language": "Sprache",
       "childBridge": "Child Bridge",
       "childBridgePort": "Child Bridge Port",
+      "childBridgeUsername": "Child Bridge Benutzername",
+      "childBridgePin": "Child Bridge PIN",
       "updateInterval": "Update-Intervall (Sekunden)",
+      "pollingInterval": "Datenabruf-Intervall (Sekunden)",
       "debug": "Debug-Modus"
+    },
+    "pushNotifications": {
+      "enabled": "Push-Benachrichtigungen aktivieren",
+      "time": "Benachrichtigungszeit",
+      "services": {
+        "pushover": {
+          "enabled": "Pushover aktivieren",
+          "userKey": "Pushover User Key",
+          "appToken": "Pushover App Token"
+        },
+        "telegram": {
+          "enabled": "Telegram aktivieren",
+          "botToken": "Telegram Bot Token",
+          "chatId": "Telegram Chat ID"
+        },
+        "homekit": {
+          "enabled": "HomeKit-Benachrichtigungen aktivieren",
+          "accessoryName": "Benachrichtigungs-Accessory Name"
+        }
+      }
+    }
+  },
+  "kostal": {
+    "dataRetrieval": "Sammle alle verfügbaren Daten von der Kostal-API...",
+    "apiModules": "ProcessData abgerufen: {count} Module",
+    "dataExtraction": "Extrahiere relevante Daten...",
+    "inverterState": "Inverter State: {state}",
+    "extractedData": "Extrahierte Daten: PV={pv}W, Home={home}W, Grid={grid}W, Battery={battery}W, {energy}kWh, {temp}°C, Status: {status}",
+    "nightMode": "Nacht-Modus: Wechselrichter aus, aber Hausverbrauch sollte verfügbar sein",
+    "checkPowermeter": "Prüfe ob Powermeter oder AC-Daten verfügbar sind",
+    "statusUpdate": "KOSTAL STATUS: {power}W | {energy}kWh | {temp}°C | {status}",
+    "energyProviderUpdated": "Energy Provider aktualisiert: {power}W | {status}",
+    "accessoryDataUpdated": "Accessory-Daten aktualisiert",
+    "dataLogging": "DATA_LOG: {data}",
+    "dailyReportData": "Tagesreport-Daten gespeichert: {count} Datenpunkte",
+    "availableServices": "Verfügbare Services: {services}",
+    "pushNotificationsDisabled": "Push-Benachrichtigungen deaktiviert",
+    "pushNotificationsEnabled": "Push-Benachrichtigungen aktiviert",
+    "childBridge": {
+      "activated": "Child Bridge Modus aktiviert",
+      "deactivated": "Child Bridge Modus deaktiviert",
+      "configuration": "Child Bridge Konfiguration: {config}",
+      "setupStarted": "Erstelle Child Bridge Konfiguration...",
+      "configCreated": "Child Bridge Konfiguration erstellt: {file}",
+      "pinGenerated": "Child Bridge PIN: {pin}",
+      "portGenerated": "Child Bridge Port: {port}",
+      "setupCompleted": "Child Bridge Setup abgeschlossen",
+      "setupError": "Fehler beim Setup der Child Bridge: {error}"
     }
   }
 }

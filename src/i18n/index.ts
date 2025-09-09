@@ -27,7 +27,7 @@ export class I18nManager {
     }
   }
 
-  public t(key: string, fallback: string): string {
+  public t(key: string, fallback: string, params?: { [key: string]: any }): string {
     try {
       const keys = key.split('.');
       let value = this.translations[this.language];
@@ -48,7 +48,16 @@ export class I18nManager {
         }
       }
 
-      return typeof value === 'string' ? value : fallback;
+      let result = typeof value === 'string' ? value : fallback;
+      
+      // Replace parameters if provided
+      if (params) {
+        for (const [paramKey, paramValue] of Object.entries(params)) {
+          result = result.replace(new RegExp(`{${paramKey}}`, 'g'), String(paramValue));
+        }
+      }
+      
+      return result;
     } catch (error) {
       return fallback;
     }

@@ -2,7 +2,10 @@
   "platform": {
     "initialized": "Kostal Inverter Platform initialized",
     "error": {
-      "mqttHostMissing": "MQTT Host is not configured"
+      "mqttHostMissing": "MQTT Host is not configured",
+      "inverterConnectionFailed": "Failed to connect to Kostal inverter",
+      "apiError": "API error: {error}",
+      "dataRetrievalFailed": "Failed to retrieve data from inverter"
     }
   },
   "mqtt": {
@@ -80,14 +83,68 @@
       "serialNumber": "Serial Number",
       "maxPower": "Maximum Power (W)",
       "maxEnergyPerDay": "Maximum Daily Energy (kWh)",
-      "strings": "Number of Strings"
+      "strings": "Number of Strings",
+      "host": "Inverter IP Address",
+      "username": "Inverter Username",
+      "password": "Inverter Password"
     },
     "general": {
       "language": "Language",
       "childBridge": "Child Bridge",
       "childBridgePort": "Child Bridge Port",
+      "childBridgeUsername": "Child Bridge Username",
+      "childBridgePin": "Child Bridge PIN",
       "updateInterval": "Update Interval (seconds)",
+      "pollingInterval": "Data Polling Interval (seconds)",
       "debug": "Debug Mode"
+    },
+    "pushNotifications": {
+      "enabled": "Enable Push Notifications",
+      "time": "Notification Time",
+      "services": {
+        "pushover": {
+          "enabled": "Enable Pushover",
+          "userKey": "Pushover User Key",
+          "appToken": "Pushover App Token"
+        },
+        "telegram": {
+          "enabled": "Enable Telegram",
+          "botToken": "Telegram Bot Token",
+          "chatId": "Telegram Chat ID"
+        },
+        "homekit": {
+          "enabled": "Enable HomeKit Notifications",
+          "accessoryName": "Notification Accessory Name"
+        }
+      }
+    }
+  },
+  "kostal": {
+    "dataRetrieval": "Retrieving data from Kostal API...",
+    "apiModules": "API modules retrieved: {count}",
+    "dataExtraction": "Extracting relevant data...",
+    "inverterState": "Inverter State: {state}",
+    "extractedData": "Extracted data: PV={pv}W, Home={home}W, Grid={grid}W, Battery={battery}W, {energy}kWh, {temp}°C, Status: {status}",
+    "nightMode": "Night mode: Inverter off, but home consumption should be available",
+    "checkPowermeter": "Check if powermeter or AC data is available",
+    "statusUpdate": "KOSTAL STATUS: {power}W | {energy}kWh | {temp}°C | {status}",
+    "energyProviderUpdated": "Energy Provider updated: {power}W | {status}",
+    "accessoryDataUpdated": "Accessory data updated",
+    "dataLogging": "DATA_LOG: {data}",
+    "dailyReportData": "Daily report data saved: {count} data points",
+    "availableServices": "Available Services: {services}",
+    "pushNotificationsDisabled": "Push notifications disabled",
+    "pushNotificationsEnabled": "Push notifications enabled",
+    "childBridge": {
+      "activated": "Child Bridge mode activated",
+      "deactivated": "Child Bridge mode deactivated",
+      "configuration": "Child Bridge configuration: {config}",
+      "setupStarted": "Creating Child Bridge configuration...",
+      "configCreated": "Child Bridge configuration created: {file}",
+      "pinGenerated": "Child Bridge PIN: {pin}",
+      "portGenerated": "Child Bridge Port: {port}",
+      "setupCompleted": "Child Bridge setup completed",
+      "setupError": "Error during Child Bridge setup: {error}"
     }
   }
 }

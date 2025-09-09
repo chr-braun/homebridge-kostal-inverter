@@ -1,2 +1,0 @@
-# Kostal Data Bridge Dependencies
-pykoplenti>=0.1.0
