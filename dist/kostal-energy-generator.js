@@ -14,7 +14,7 @@ class KostalEnergyGenerator {
         this.dataPollingInterval = null;
         this.logData = [];
         this.energyAccessories = new Map();
-        this.log.info('Kostal Solar Energy Generator initialisiert');
+        this.log.info('Kostal Inverter Platform initialisiert');
         // Child Bridge Support
         if (this.config.childBridge) {
             this.log.info('Plugin läuft als Child Bridge');
@@ -242,7 +242,7 @@ class KostalEnergyGenerator {
             const accessory = new this.api.platformAccessory(device.name, uuid);
             accessory.context.device = device;
             this.accessories.push(accessory);
-            this.api.registerPlatformAccessories('homebridge-kostal-inverter', 'KostalEnergyGenerator', [accessory]);
+            this.api.registerPlatformAccessories('homebridge-kostal-inverter', 'KostalInverter', [accessory]);
         }
         // Accessory-Instanz erstellen und speichern
         const energyAccessory = new kostal_energy_accessory_1.KostalEnergyAccessory(this, this.accessories.find(a => a.UUID === uuid));

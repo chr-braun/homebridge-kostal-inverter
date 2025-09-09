@@ -17,7 +17,7 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
     public readonly config: PlatformConfig,
     public readonly api: API,
   ) {
-    this.log.info('Kostal Solar Energy Generator initialisiert');
+    this.log.info('Kostal Inverter Platform initialisiert');
 
     // Child Bridge Support
     if (this.config.childBridge) {
@@ -273,7 +273,7 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
       const accessory = new this.api.platformAccessory(device.name, uuid);
       accessory.context.device = device;
       this.accessories.push(accessory);
-      this.api.registerPlatformAccessories('homebridge-kostal-inverter', 'KostalEnergyGenerator', [accessory]);
+      this.api.registerPlatformAccessories('homebridge-kostal-inverter', 'KostalInverter', [accessory]);
     }
 
     // Accessory-Instanz erstellen und speichern
