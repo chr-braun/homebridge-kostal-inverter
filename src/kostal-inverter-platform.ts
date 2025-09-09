@@ -600,7 +600,7 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
    * Täglichen Bericht generieren
    */
   public generateDailyReport(energy: number): string {
-    const language = this.dailyReportsConfig.language || 'de';
+    const language = this.dailyReportsConfig?.language || 'de';
     const today = new Date().toLocaleDateString('de-DE');
     
     const reports = {
