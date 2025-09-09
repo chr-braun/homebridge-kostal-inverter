@@ -1,18 +1,24 @@
-# Homebridge Kostal Inverter Plugin
+# Homebridge Kostal Solar Energy Generator
 
-Ein Homebridge-Plugin für Kostal Solar-Wechselrichter mit direkter API-Integration und HomeKit Energy Generator-Unterstützung.
+Ein Homebridge-Plugin für Kostal Solar-Wechselrichter mit direkter API-Integration, täglichen Solar-Berichten und HomeKit Energy Generator-Unterstützung.
+
+[![npm version](https://badge.fury.io/js/homebridge-kostal-inverter.svg)](https://badge.fury.io/js/homebridge-kostal-inverter)
+[![Downloads](https://img.shields.io/npm/dm/homebridge-kostal-inverter.svg)](https://www.npmjs.com/package/homebridge-kostal-inverter)
+[![License](https://img.shields.io/npm/l/homebridge-kostal-inverter.svg)](https://github.com/chr-braun/homebridge-kostal-inverter/blob/main/LICENSE)
 
 ## 🚀 Features
 
-- **Echte Kostal-API-Integration** - Direkte Verbindung zu deinem Kostal-Wechselrichter über pykoplenti
-- **HomeKit Sensoren** - 6 verschiedene Sensoren für alle Kostal-Daten
-- **GUI-Konfiguration** - Einfache Einrichtung über die Homebridge-UI
-- **Echtzeitdaten** - Live-Daten von deinem Kostal-Wechselrichter
-- **Child Bridge Support** - Läuft als separate Child Bridge für bessere Stabilität
-- **Mehrsprachig** - Unterstützung für Deutsch, Englisch, Französisch, Italienisch und Chinesisch
-- **Python-Integration** - Robuste Datenabfrage über Python-Script
-- **Apple Home App Integration** - Sensoren werden in der Energie-Übersicht angezeigt
-- **Automatisierungen** - Siri-Integration und energiebasierte Regeln möglich
+- **🔌 Echte Kostal-API-Integration** - Direkte Verbindung zu deinem Kostal-Wechselrichter
+- **📱 HomeKit Sensoren** - 6 verschiedene Sensoren für alle Kostal-Daten
+- **⚙️ GUI-Konfiguration** - Einfache Einrichtung über die Homebridge-UI
+- **📊 Echtzeitdaten** - Live-Daten von deinem Kostal-Wechselrichter (alle 30s)
+- **🌉 Child Bridge Support** - Läuft als separate Child Bridge für bessere Stabilität
+- **🌍 Mehrsprachig** - Unterstützung für Deutsch, Englisch, Französisch, Italienisch und Chinesisch
+- **📈 Tägliche Solar-Berichte** - Automatische Push-Benachrichtigungen mit Tagesenergie
+- **🔔 HomeKit Push-Notifications** - Motion Sensor für Solar-Benachrichtigungen
+- **🏠 Apple Home App Integration** - Sensoren werden in der Energie-Übersicht angezeigt
+- **🤖 Automatisierungen** - Siri-Integration und energiebasierte Regeln möglich
+- **🛡️ Robuste Fehlerbehandlung** - Fallback auf simulierte Daten bei API-Fehlern
 
 ## 🚀 Erste Schritte
 
@@ -23,7 +29,7 @@ Ein Homebridge-Plugin für Kostal Solar-Wechselrichter mit direkter API-Integrat
 
 ### 2. Plugin installieren
 ```bash
-npm install homebridge-kostal-inverter@beta
+npm install homebridge-kostal-inverter
 ```
 
 ### 3. Homebridge-UI konfigurieren
@@ -59,6 +65,35 @@ Das Plugin erstellt **6 verschiedene Sensoren** in HomeKit:
 - **Temperatur**: Direkt in °C
 - **Tagesenergie**: kWh → Lux (1kWh = 1000 Lux)
 - **Status**: Online/Offline → Kontakt geöffnet/geschlossen
+
+## 📈 Tägliche Solar-Berichte
+
+### **Automatische Push-Benachrichtigungen**
+Das Plugin sendet täglich um 20:00 Uhr (konfigurierbar) eine Push-Benachrichtigung mit:
+- **Tagesenergie** in kWh
+- **Maximale Leistung** in Watt
+- **Durchschnittliche Leistung** in Watt
+- **Produktionszeit** in Stunden
+- **Effizienz** in %
+
+### **Konfiguration der Berichte**
+```json
+{
+  "dailyReports": {
+    "enabled": true,
+    "time": "20:00",
+    "style": "motion",
+    "language": "de"
+  }
+}
+```
+
+### **Unterstützte Sprachen**
+- 🇩🇪 Deutsch (de)
+- 🇬🇧 Englisch (en)
+- 🇫🇷 Französisch (fr)
+- 🇮🇹 Italienisch (it)
+- 🇨🇳 Chinesisch (zh)
 
 ## 🏠 HomeKit Integration
 
@@ -325,6 +360,31 @@ npm run build
 - Kostal Plenticore (alle Modelle)
 - Kostal Piko (alle Modelle)
 - Weitere Kostal-Modelle mit pykoplenti-Unterstützung
+
+## 📝 Changelog
+
+### Version 1.0.4 (2025-09-09)
+- ✅ Konfigurationsschema für Homebridge UI korrigiert
+- ✅ Plugin ist jetzt vollständig in der Homebridge UI konfigurierbar
+
+### Version 1.0.3 (2025-09-09)
+- ✅ Platform-Registrierung korrigiert
+- ✅ Kompatibilität mit bestehenden Homebridge-Installationen
+
+### Version 1.0.2 (2025-09-09)
+- ✅ Callback-Fehler in allen Event Handlers behoben
+- ✅ Robuste Fehlerbehandlung implementiert
+
+### Version 1.0.1 (2025-09-09)
+- ✅ Callback-Fehler behoben
+- ✅ Verbesserte Fehlerbehandlung
+
+### Version 1.0.0 (2025-09-09)
+- 🎉 Erste stabile Version
+- ✅ Vollständige Kostal-API-Integration
+- ✅ Tägliche Solar-Berichte
+- ✅ Mehrsprachige Unterstützung
+- ✅ HomeKit Push-Notifications
 
 ## 🤝 Beitragen
 
