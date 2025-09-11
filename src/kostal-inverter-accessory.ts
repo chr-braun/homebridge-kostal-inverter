@@ -62,12 +62,12 @@ export class KostalInverterAccessory {
     this.temperatureService.setCharacteristic(this.platform.Characteristic.Name, 'Inverter Temperature');
     this.temperatureService.setCharacteristic(this.platform.Characteristic.CurrentTemperature, 20);
 
-    // Tagesenergie als Light Sensor (kWh als Lux)
+    // Tagesenergie als Temperature Sensor (kWh als °C)
     this.energyService = this.accessory.getService('Daily Energy Production') ||
-      this.accessory.addService(this.platform.Service.LightSensor, 'Daily Energy Production', 'daily-energy');
+      this.accessory.addService(this.platform.Service.TemperatureSensor, 'Daily Energy Production', 'daily-energy');
     
     this.energyService.setCharacteristic(this.platform.Characteristic.Name, 'Daily Energy Production');
-    this.energyService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0.0001);
+    this.energyService.setCharacteristic(this.platform.Characteristic.CurrentTemperature, 0);
 
     // Status als Contact Sensor
     this.statusService = this.accessory.getService('Inverter Status') ||
@@ -77,30 +77,30 @@ export class KostalInverterAccessory {
     this.statusService.setCharacteristic(this.platform.Characteristic.ContactSensorState, 
       this.platform.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
 
-    // AC-Spannung als Light Sensor (Volt als Lux)
+    // AC-Spannung als Temperature Sensor (Volt als °C)
     this.voltageService = this.accessory.getService('AC Voltage') ||
-      this.accessory.addService(this.platform.Service.LightSensor, 'AC Voltage', 'ac-voltage');
+      this.accessory.addService(this.platform.Service.TemperatureSensor, 'AC Voltage', 'ac-voltage');
     
     this.voltageService.setCharacteristic(this.platform.Characteristic.Name, 'AC Voltage');
-    this.voltageService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0.0001);
+    this.voltageService.setCharacteristic(this.platform.Characteristic.CurrentTemperature, 0);
   }
 
   private createStringServices(): void {
     const stringNumber = this.device.stringNumber;
     
-    // DC-Spannung als Light Sensor (Volt als Lux)
+    // DC-Spannung als Temperature Sensor (Volt als °C)
     this.voltageService = this.accessory.getService(`String ${stringNumber} DC Voltage`) ||
-      this.accessory.addService(this.platform.Service.LightSensor, `String ${stringNumber} DC Voltage`, `string-${stringNumber}-voltage-${Date.now()}`);
+      this.accessory.addService(this.platform.Service.TemperatureSensor, `String ${stringNumber} DC Voltage`, `string-${stringNumber}-voltage-${Date.now()}`);
     
     this.voltageService.setCharacteristic(this.platform.Characteristic.Name, `String ${stringNumber} DC Voltage`);
-    this.voltageService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0.0001);
+    this.voltageService.setCharacteristic(this.platform.Characteristic.CurrentTemperature, 0);
 
-    // DC-Strom als Light Sensor (Ampere als Lux)
+    // DC-Strom als Temperature Sensor (Ampere als °C)
     this.currentService = this.accessory.getService(`String ${stringNumber} DC Current`) ||
-      this.accessory.addService(this.platform.Service.LightSensor, `String ${stringNumber} DC Current`, `string-${stringNumber}-current-${Date.now()}`);
+      this.accessory.addService(this.platform.Service.TemperatureSensor, `String ${stringNumber} DC Current`, `string-${stringNumber}-current-${Date.now()}`);
     
     this.currentService.setCharacteristic(this.platform.Characteristic.Name, `String ${stringNumber} DC Current`);
-    this.currentService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0.0001);
+    this.currentService.setCharacteristic(this.platform.Characteristic.CurrentTemperature, 0);
 
     // DC-Leistung als Outlet Service
     this.powerService = this.accessory.getService(`String ${stringNumber} DC Power`) ||
@@ -144,13 +144,13 @@ export class KostalInverterAccessory {
         callback(null, value);
       });
 
-    // Event Handler für Energie (Light Sensor)
-    this.energyService?.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+    // Event Handler für Energie (Temperature Sensor)
+    this.energyService?.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .on('get', (callback) => {
         const value = this.currentValues.get('energy_today') || 0;
-        // kWh zu Lux konvertieren (1 kWh = 1000 Lux)
-        const luxValue = Math.max(0.0001, value * 1000);
-        callback(null, luxValue);
+        // kWh zu °C konvertieren (1 kWh = 1°C)
+        const tempValue = value;
+        callback(null, tempValue);
       });
 
     // Event Handler für Status
@@ -163,22 +163,22 @@ export class KostalInverterAccessory {
         callback(null, state);
       });
 
-    // Event Handler für Spannung (Light Sensor)
-    this.voltageService?.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+    // Event Handler für Spannung (Temperature Sensor)
+    this.voltageService?.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .on('get', (callback) => {
         const value = this.currentValues.get('voltage_ac') || this.currentValues.get(`voltage_dc${this.device.stringNumber}`) || 0;
-        // Volt zu Lux konvertieren (1 V = 1 Lux)
-        const luxValue = Math.max(0.0001, value);
-        callback(null, luxValue);
+        // Volt zu °C konvertieren (1 V = 1°C)
+        const tempValue = value;
+        callback(null, tempValue);
       });
 
-    // Event Handler für Strom (Light Sensor)
-    this.currentService?.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+    // Event Handler für Strom (Temperature Sensor)
+    this.currentService?.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .on('get', (callback) => {
         const value = this.currentValues.get(`current_dc${this.device.stringNumber}`) || 0;
-        // Ampere zu Lux konvertieren (1 A = 1 Lux)
-        const luxValue = Math.max(0.0001, value);
-        callback(null, luxValue);
+        // Ampere zu °C konvertieren (1 A = 1°C)
+        const tempValue = value;
+        callback(null, tempValue);
       });
   }
 
@@ -205,9 +205,9 @@ export class KostalInverterAccessory {
       
       if (data.energy_today !== undefined) {
         this.currentValues.set('energy_today', data.energy_today);
-        // kWh zu Lux konvertieren
-        const luxValue = Math.max(0.0001, data.energy_today * 1000);
-        this.energyService?.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, luxValue);
+        // kWh zu °C konvertieren (1 kWh = 1°C)
+        const tempValue = data.energy_today;
+        this.energyService?.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, tempValue);
       }
       
       if (data.status !== undefined) {
@@ -220,8 +220,8 @@ export class KostalInverterAccessory {
       
       if (data.voltage_ac !== undefined) {
         this.currentValues.set('voltage_ac', data.voltage_ac);
-        const luxValue = Math.max(0.0001, data.voltage_ac);
-        this.voltageService?.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, luxValue);
+        const tempValue = data.voltage_ac;
+        this.voltageService?.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, tempValue);
       }
       
     } else if (deviceType === 'string') {
@@ -230,14 +230,14 @@ export class KostalInverterAccessory {
       
       if (data[`voltage_dc${stringNumber}`] !== undefined) {
         this.currentValues.set(`voltage_dc${stringNumber}`, data[`voltage_dc${stringNumber}`]);
-        const luxValue = Math.max(0.0001, data[`voltage_dc${stringNumber}`]);
-        this.voltageService?.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, luxValue);
+        const tempValue = data[`voltage_dc${stringNumber}`];
+        this.voltageService?.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, tempValue);
       }
       
       if (data[`current_dc${stringNumber}`] !== undefined) {
         this.currentValues.set(`current_dc${stringNumber}`, data[`current_dc${stringNumber}`]);
-        const luxValue = Math.max(0.0001, data[`current_dc${stringNumber}`]);
-        this.currentService?.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, luxValue);
+        const tempValue = data[`current_dc${stringNumber}`];
+        this.currentService?.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, tempValue);
       }
       
       if (data[`power_dc${stringNumber}`] !== undefined) {

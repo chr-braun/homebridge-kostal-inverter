@@ -1,7 +1,7 @@
 {
   "name": "homebridge-kostal-inverter",
   "displayName": "Kostal Inverter",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Homebridge plugin for Kostal solar inverters with direct API integration, multi-language UI, daily push notifications, and child bridge capability",
   "main": "dist/index.js",
   "scripts": {
