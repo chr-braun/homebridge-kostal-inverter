@@ -23,11 +23,11 @@ class KostalEnergyAccessory {
         const serviceId = `${deviceType}-${Date.now()}`;
         switch (deviceType) {
             case 'main':
-                // Solarproduktion als Light Sensor (Watt als Lux)
+                // Solarproduktion/Netzbezug als Temperatur-Sensor (Watt als °C)
                 this.mainService = this.accessory.getService(deviceName) ||
-                    this.accessory.addService(this.platform.Service.LightSensor, deviceName, serviceId);
+                    this.accessory.addService(this.platform.Service.TemperatureSensor, deviceName, serviceId);
                 this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
-                this.mainService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0.0001);
+                this.mainService.setCharacteristic(this.platform.Characteristic.CurrentTemperature, 0);
                 break;
             case 'home_power':
                 // Hausverbrauch als Motion Sensor (Bewegung = Verbrauch)
@@ -53,7 +53,7 @@ class KostalEnergyAccessory {
             case 'daily_energy':
                 // Tagesenergie als Light Sensor (kWh als Lux)
                 this.mainService = this.accessory.getService(deviceName) ||
-                    this.accessory.addService(this.platform.Service.LightSensor, deviceName, serviceId);
+                    this.accessory.addService(this.platform.Service.TemperatureSensor, deviceName, serviceId);
                 this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
                 this.mainService.setCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, 0.0001);
                 break;
@@ -74,16 +74,18 @@ class KostalEnergyAccessory {
         const deviceType = this.device.type;
         switch (deviceType) {
             case 'main':
-                // Solarproduktion (Watt als Lux)
-                this.mainService.getCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel)
+                // Solarproduktion/Netzbezug (Watt als Temperatur)
+                this.mainService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
                     .on('get', (callback) => {
                     // Sofortiger synchroner Callback um Race Conditions zu vermeiden
                     setImmediate(() => {
                         try {
                             const power = this.currentValues.get('power') || 0;
-                            // Watt zu Lux konvertieren (1 W = 1 Lux)
-                            const luxValue = Math.max(0.0001, Math.abs(power));
-                            callback(null, luxValue);
+                            // Watt zu Temperatur konvertieren (100 W = 1°C)
+                            // Solar-Export (negativ): -5500W = -55°C
+                            // Netz-Import (positiv): +10000W = +100°C
+                            const tempValue = power / 100;
+                            callback(null, tempValue);
                         }
                         catch (error) {
                             this.log.error('Fehler beim Abrufen der Solarproduktion:', error);
@@ -110,14 +112,16 @@ class KostalEnergyAccessory {
                 });
                 break;
             case 'grid_power':
-                // Netzleistung (Bezug/Einspeisung)
+                // Netzleistung Status (Export/Import)
                 this.mainService.getCharacteristic(this.platform.Characteristic.OccupancyDetected)
                     .on('get', (callback) => {
                     setImmediate(() => {
                         try {
                             const gridPower = this.currentValues.get('grid_power') || 0;
-                            const occupancyDetected = Math.abs(gridPower) > 0;
-                            callback(null, occupancyDetected ?
+                            // Negative Werte = Solar-Export = OCCUPANCY_DETECTED
+                            // Positive Werte = Netz-Import = OCCUPANCY_NOT_DETECTED
+                            const isExport = gridPower < 0;
+                            callback(null, isExport ?
                                 this.platform.Characteristic.OccupancyDetected.OCCUPANCY_DETECTED :
                                 this.platform.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
                         }
@@ -208,11 +212,11 @@ class KostalEnergyAccessory {
                 }
                 break;
             case 'grid_power':
-                // Netzleistung (Bezug/Einspeisung)
+                // Netzleistung Status (Export/Import)
                 if (data.grid_power !== undefined) {
                     this.currentValues.set('grid_power', data.grid_power);
-                    const occupancyDetected = Math.abs(data.grid_power) > 0;
-                    this.mainService.updateCharacteristic(this.platform.Characteristic.OccupancyDetected, occupancyDetected ?
+                    const isExport = data.grid_power < 0;
+                    this.mainService.updateCharacteristic(this.platform.Characteristic.OccupancyDetected, isExport ?
                         this.platform.Characteristic.OccupancyDetected.OCCUPANCY_DETECTED :
                         this.platform.Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED);
                 }
