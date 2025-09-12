@@ -2,5 +2,5 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { KostalInverterPlatform } from './kostal-inverter-platform';
 
 export = (api: API) => {
-  api.registerPlatform('KostalInverter', KostalInverterPlatform);
+  api.registerPlatform('homebridge-kostal-inverter', 'KostalInverter', KostalInverterPlatform);
 };

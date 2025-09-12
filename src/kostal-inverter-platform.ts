@@ -468,7 +468,7 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
       const accessory = new this.api.platformAccessory(device.name, uuid);
       accessory.context.device = device;
       this.accessories.push(accessory);
-      this.api.registerPlatformAccessories('homebridge-kostal-inverter.KostalInverter', 'KostalInverter', [accessory]);
+      this.api.registerPlatformAccessories('homebridge-kostal-inverter', 'KostalInverter', [accessory]);
     }
 
     // Accessory-Instanz erstellen
@@ -506,7 +506,7 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
       accessory.context.device = motionDevice;
       this.accessories.push(accessory);
       this.motionSensorAccessory = accessory;
-      this.api.registerPlatformAccessories('homebridge-kostal-inverter.KostalInverter', 'KostalInverter', [accessory]);
+      this.api.registerPlatformAccessories('homebridge-kostal-inverter', 'KostalInverter', [accessory]);
     }
 
     // Motion Sensor Service hinzufügen
