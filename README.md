@@ -44,8 +44,8 @@ npm install -g homebridge-kostal-inverter
 ### Basis-Konfiguration
 
 ```json
-{
-  "platform": "KostalInverter",
+    {
+      "platform": "KostalInverter",
   "name": "Kostal Solar",
   "mqtt": {
     "host": "192.168.1.100",
@@ -53,14 +53,14 @@ npm install -g homebridge-kostal-inverter
     "username": "your_username",
     "password": "your_password",
     "clientId": "homebridge-kostal"
-  },
-  "inverter": {
+      },
+      "inverter": {
     "name": "Kostal Piko",
     "model": "Piko 10.0",
     "serialNumber": "123456789"
   },
   "language": "de",
-  "childBridge": false
+      "childBridge": false
 }
 ```
 

@@ -1,26 +1,24 @@
 {
   "platform": {
-    "name": "AHOY-DTU Solar",
-    "description": "AHOY-DTU Solar inverter monitoring via MQTT"
+    "name": "Kostal Inverter",
+    "description": "Kostal inverter monitoring via direct API integration"
   },
   "config": {
     "basic": {
       "title": "📝 Basic Configuration",
       "description": "Essential settings to get started",
       "name": "Name",
-      "nameDescription": "Name of the AHOY-DTU Platform"
+      "nameDescription": "Name of the Kostal Inverter Platform"
     },
-    "mqtt": {
-      "title": "🔌 MQTT Connection",
-      "description": "Configure connection to your MQTT broker",
-      "host": "MQTT Host",
-      "hostDescription": "IP address or hostname of your MQTT broker",
-      "port": "MQTT Port",
-      "portDescription": "Port of your MQTT broker (default: 1883)",
-      "username": "MQTT Username",
-      "usernameDescription": "Username for MQTT authentication (optional)",
-      "password": "MQTT Password",
-      "passwordDescription": "Password for MQTT authentication (optional)"
+    "kostal": {
+      "title": "🔌 Kostal Connection",
+      "description": "Configure connection to your Kostal inverter",
+      "host": "IP Address",
+      "hostDescription": "IP address of your Kostal inverter",
+      "username": "Username",
+      "usernameDescription": "Username for Kostal authentication (default: pvserver)",
+      "password": "Password",
+      "passwordDescription": "Password for Kostal authentication"
     },
     "devices": {
       "title": "📱 Device Management",

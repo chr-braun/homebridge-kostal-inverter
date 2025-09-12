@@ -2,6 +2,8 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { KostalInverterAccessory } from './kostal-inverter-accessory';
 import { I18nManager } from './i18n';
 import * as cron from 'node-cron';
+import { exec, spawn } from 'child_process';
+import * as path from 'path';
 
 export class KostalInverterPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
@@ -16,7 +18,7 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
   private dailyEnergyData: Map<string, number> = new Map();
   private motionSensorAccessory: PlatformAccessory | null = null;
   private cronJob: any = null;
-  private httpClient: any = null;
+  private pythonProcess: any = null;
 
   constructor(
     public readonly log: Logger,
@@ -45,6 +47,7 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
       this.loadKostalConfig();
       this.loadDailyReportsConfig();
       this.discoverDevices();
+      this.initializePythonScript();
       this.startDataPolling();
       this.setupDailyReports();
     });
@@ -141,7 +144,7 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
           kostal: {
             host: kostalConfig.host,
             username: kostalConfig.username || 'pvserver',
-            password: kostalConfig.password || 'pvwr'
+            password: kostalConfig.password || 'pny6F0y9tC7qXnQ'
           }
         };
         this.log.info(`Kostal-Konfiguration geladen: ${kostalConfig.host}`);
@@ -150,9 +153,9 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
         // Fallback für Tests
         this.kostalConfig = {
           kostal: {
-            host: '192.168.1.100',
+            host: '192.168.178.71',
             username: 'pvserver',
-            password: 'pvwr'
+            password: 'pny6F0y9tC7qXnQ'
           }
         };
       }
@@ -221,84 +224,97 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
   }
 
   /**
-   * Alle Kostal-Daten von der API abrufen
-   * Verwendet die korrekten Kostal-API-Endpunkte
+   * Alle Kostal-Daten über Python-Script abrufen
+   * Verwendet ausschließlich das Python-Script für die Kommunikation
    */
   private async fetchAllKostalData(): Promise<any> {
-    this.log.debug('🔍 Sammle alle verfügbaren Daten von der Kostal-API...');
+    this.log.debug('🐍 Abrufen der Kostal-Daten über Python-Script...');
     
-    // HTTP Client initialisieren falls noch nicht geschehen
-    if (!this.httpClient) {
-      this.initializeHttpClient();
-    }
-    
-    try {
-      // Kostal-API-Endpunkte (korrekte Endpunkte)
-      const endpoints = [
-        '/api/v1/processdata',
-        '/api/v1/status',
-        '/api/v1/version'
-      ];
+    return new Promise((resolve, reject) => {
+      if (!this.kostalConfig?.kostal?.host) {
+        this.log.warn('Keine Kostal-Host-Konfiguration verfügbar');
+        resolve(this.getSimulatedKostalData());
+        return;
+      }
+
+      // Python-Script Pfad
+      const scriptPath = path.join(__dirname, '../kostal_data_bridge.py');
       
-      const results: any = {};
+      // Python-Script mit echten Credentials ausführen (einmal, nicht kontinuierlich)
+      const pythonCmd = `python3 "${scriptPath}" --host "${this.kostalConfig.kostal.host}" --username "${this.kostalConfig.kostal.username}" --password "${this.kostalConfig.kostal.password}" --output json --once`;
       
-      // Alle Endpunkte abrufen
-      for (const endpoint of endpoints) {
-        try {
-          const response = await this.httpClient.get(endpoint);
-          const endpointName = endpoint.replace('/api/v1/', '');
-          results[endpointName] = response;
-          this.log.debug(`${endpointName} API erfolgreich abgerufen`);
-        } catch (error) {
-          this.log.debug(`${endpoint} nicht verfügbar (normal für manche Wechselrichter)`);
+      this.log.debug(`🔄 Führe Python-Script aus: ${pythonCmd}`);
+      
+      exec(pythonCmd, { timeout: 15000 }, (error, stdout, stderr) => {
+        if (error) {
+          this.log.error(`Python-Script Fehler: ${error.message}`);
+          resolve(this.getSimulatedKostalData());
+          return;
         }
-      }
-      
-      // Prüfe ob mindestens ein Endpunkt funktioniert hat
-      if (Object.keys(results).length === 0) {
-        this.log.warn('Keine Kostal-API-Endpunkte verfügbar, verwende simulierte Daten');
-        return this.getSimulatedKostalData();
-      }
-      
-      // Daten zusammenfassen
-      const allData = {
-        ...results,
-        timestamp: new Date().toISOString()
-      };
-      
-      this.log.debug('Kostal-API-Daten erfolgreich abgerufen:', Object.keys(allData).length, 'Endpunkte');
-      
-      return allData;
-    } catch (error) {
-      this.log.error('Fehler beim Abrufen der Kostal-API-Daten:', error);
-      
-      // Fallback: Simulierte Daten für Tests
-      return this.getSimulatedKostalData();
-    }
+        
+        if (stderr) {
+          this.log.warn(`Python-Script Warnung: ${stderr}`);
+        }
+        
+        try {
+          // JSON-Ausgabe vom Python-Script parsen
+          const jsonData = JSON.parse(stdout.trim());
+          this.log.debug('✅ Python-Script Daten erfolgreich erhalten');
+          
+          // Daten in das erwartete Format konvertieren
+          const formattedData = {
+            pythonData: jsonData,
+      timestamp: new Date().toISOString()
+    };
+    
+          resolve(formattedData);
+        } catch (parseError) {
+          this.log.error(`Fehler beim Parsen der Python-Script Ausgabe: ${parseError}`);
+          this.log.debug(`Python-Script Ausgabe: ${stdout}`);
+          resolve(this.getSimulatedKostalData());
+        }
+      });
+    });
   }
 
   /**
-   * HTTP Client für Kostal-API initialisieren
+   * Python-Script initialisieren und testen
    */
-  private initializeHttpClient(): void {
+  private initializePythonScript(): void {
     if (!this.kostalConfig?.kostal?.host) {
       this.log.warn('Keine Kostal-Host-Konfiguration verfügbar');
       return;
     }
 
-    const axios = require('axios');
-    const baseURL = `http://${this.kostalConfig.kostal.host}`;
-    
-    this.httpClient = axios.create({
-      baseURL,
-      timeout: 10000,
-      auth: {
-        username: this.kostalConfig.kostal.username,
-        password: this.kostalConfig.kostal.password
+    // Teste ob Python3 verfügbar ist
+    exec('python3 --version', (error, stdout, stderr) => {
+      if (error) {
+        this.log.error('❌ Python3 nicht gefunden. Bitte installieren Sie Python3.');
+        this.log.error('Installationsanleitung: npm run setup-kostal');
+        return;
       }
+      
+      this.log.info(`✅ Python3 gefunden: ${stdout.trim()}`);
+      
+      // Teste Python-Dependencies
+      const scriptPath = path.join(__dirname, '../kostal_data_bridge.py');
+      exec(`python3 "${scriptPath}" --test`, (error, stdout, stderr) => {
+        if (error) {
+          this.log.warn('⚠️ Python-Dependencies fehlen. Installiere automatisch...');
+          exec('npm run postinstall', (installError) => {
+            if (installError) {
+              this.log.error('❌ Automatische Installation fehlgeschlagen. Führen Sie aus: npm run setup-kostal');
+            } else {
+              this.log.info('✅ Python-Dependencies erfolgreich installiert');
+            }
+          });
+        } else {
+          this.log.info('✅ Python-Script bereit');
+        }
+      });
     });
 
-    this.log.info(`HTTP Client initialisiert für: ${baseURL}`);
+    this.log.info(`🐍 Python-Script für Kostal-Host: ${this.kostalConfig.kostal.host}`);
   }
 
   /**
@@ -337,26 +353,71 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
   }
 
   /**
-   * Kostal-Daten verarbeiten und Accessories aktualisieren
+   * Python-Kostal-Daten verarbeiten und Accessories aktualisieren
    */
   private processKostalData(data: any): void {
+    try {
+      // Python-Daten extrahieren
+      const pythonData = data.pythonData || data;
+      
+      this.log.debug('🐍 Verarbeite Python-Daten:', pythonData);
+      
+      // Daten in das erwartete Format konvertieren (erweiterte Kostal-Daten)
+      const processedData = {
+        // Hauptleistungsdaten
+        power: pythonData.power || 0,                    // DC-Gesamtleistung
+        ac_power: pythonData.ac_power || 0,              // AC-Gesamtleistung
+        grid_power: pythonData.grid_power || 0,          // Netzleistung (negativ = Einspeisung)
+        home_consumption: pythonData.home_consumption || 0, // Hausverbrauch
+        home_own: pythonData.home_own || 0,              // Eigenverbrauch Solar
+        
+        // Energiedaten
+        energy_today: pythonData.energy_today || 0,     // Tagesertrag in kWh
+        energy_total: pythonData.energy_total || 0,     // Gesamtertrag in kWh
+        
+        // PV-String Daten
+        voltage_dc1: pythonData.voltage_dc1 || 0,        // String 1 Spannung
+        current_dc1: pythonData.current_dc1 || 0,        // String 1 Strom
+        power_dc1: pythonData.power_dc1 || 0,            // String 1 Leistung
+        voltage_dc2: pythonData.voltage_dc2 || 0,        // String 2 Spannung
+        current_dc2: pythonData.current_dc2 || 0,        // String 2 Strom
+        power_dc2: pythonData.power_dc2 || 0,            // String 2 Leistung
+        
+        // AC-Daten
+        voltage_ac: pythonData.voltage_ac || 0,          // AC-Spannung
+        frequency: pythonData.frequency || 0,            // Netzfrequenz
+        
+        // Erweiterte Statistiken
+        co2_saving_today: pythonData.co2_saving_today || 0,     // CO2-Einsparung heute
+        autarky_today: pythonData.autarky_today || 0,           // Autarkie heute in %
+        own_consumption_rate: pythonData.own_consumption_rate || 0, // Eigenverbrauchsrate in %
+        
+        // System
+        status: pythonData.status || 0,                  // Inverter State
+        timestamp: data.timestamp || new Date().toISOString()
+      };
+
     // Daten speichern
-    Object.keys(data).forEach(key => {
-      this.deviceData.set(key, data[key]);
-    });
+      Object.keys(processedData).forEach(key => {
+        this.deviceData.set(key, (processedData as any)[key]);
+      });
 
-    // Tägliche Energieverfolgung
-    this.trackDailyEnergy(data);
+      // Tägliche Energieverfolgung
+      this.trackDailyEnergy(processedData);
 
-    // Accessories aktualisieren (vorerst deaktiviert, da Instanzen nicht verfügbar)
-    // this.accessories.forEach(accessory => {
-    //   const inverterAccessory = this.findAccessoryInstance(accessory);
-    //   if (inverterAccessory && typeof inverterAccessory.updateData === 'function') {
-    //     inverterAccessory.updateData(data);
-    //   }
-    // });
+      // Accessories aktualisieren (vorerst deaktiviert, da Instanzen nicht verfügbar)
+      // this.accessories.forEach(accessory => {
+      //   const inverterAccessory = this.findAccessoryInstance(accessory);
+      //   if (inverterAccessory && typeof inverterAccessory.updateData === 'function') {
+      //     inverterAccessory.updateData(processedData);
+      //   }
+      // });
 
-    this.log.debug('Kostal-Daten aktualisiert:', data);
+      this.log.info(`✅ Kostal-Daten: Solar ${processedData.power}W, AC ${processedData.ac_power}W, Netz ${processedData.grid_power}W, Haus ${processedData.home_consumption}W`);
+      
+    } catch (error) {
+      this.log.error('❌ Fehler beim Verarbeiten der Python-Daten:', error);
+    }
   }
 
   /**

@@ -1,55 +1,44 @@
 {
   "platform": {
-    "name": "AHOY-DTU Solar",
-    "description": "AHOY-DTU Solaranlagen-Überwachung über MQTT"
+    "name": "Kostal Inverter",
+    "description": "Kostal Wechselrichter-Überwachung über direkte API-Integration"
   },
   "config": {
     "basic": {
       "title": "📝 Grundkonfiguration",
       "description": "Wichtige Einstellungen zum Starten",
       "name": "Name",
-      "nameDescription": "Name der AHOY-DTU Platform"
+      "nameDescription": "Name der Kostal Inverter Platform"
     },
-    "mqtt": {
-      "title": "🔌 MQTT-Verbindung",
-      "description": "Verbindung zu deinem MQTT-Broker konfigurieren",
-      "host": "MQTT-Host",
-      "hostDescription": "IP-Adresse oder Hostname deines MQTT-Brokers",
-      "port": "MQTT-Port",
-      "portDescription": "Port deines MQTT-Brokers (Standard: 1883)",
-      "username": "MQTT-Benutzername",
-      "usernameDescription": "Benutzername für MQTT-Authentifizierung (optional)",
-      "password": "MQTT-Passwort",
-      "passwordDescription": "Passwort für MQTT-Authentifizierung (optional)"
+    "kostal": {
+      "title": "🔌 Kostal-Verbindung",
+      "description": "Verbindung zu deinem Kostal-Wechselrichter konfigurieren",
+      "host": "IP-Adresse",
+      "hostDescription": "IP-Adresse deines Kostal-Wechselrichters",
+      "username": "Benutzername",
+      "usernameDescription": "Benutzername für Kostal-Authentifizierung (Standard: pvserver)",
+      "password": "Passwort",
+      "passwordDescription": "Passwort für Kostal-Authentifizierung"
     },
-    "devices": {
-      "title": "📱 Geräteverwaltung",
-      "description": "Konfiguriere, welche Geräte überwacht werden sollen",
-      "discoverDevices": "Geräte automatisch entdecken",
-      "discoverDevicesDescription": "Alle verfügbaren MQTT-Topics automatisch erkennen",
-      "usePreset": "Voreinstellung verwenden",
-      "usePresetDescription": "Schnelle Einrichtung mit vordefinierten Geräten",
-      "presetOptions": {
-        "basic": "Basis (Leistung + Tagesenergie + Status)",
-        "detailed": "Detailliert (+ Temperatur + Effizienz + Gesamtenergie)",
-        "individual": "Einzelne Wechselrichter (während der Erkennung hinzugefügt)"
-      },
-      "selectedDevices": "Ausgewählte Geräte",
-      "selectedDevicesDescription": "Liste der zu überwachenden MQTT-Topics"
+    "inverter": {
+      "title": "⚡ Wechselrichter-Einstellungen",
+      "description": "Konfiguriere Wechselrichter-spezifische Einstellungen",
+      "pollingInterval": "Abfrage-Intervall",
+      "pollingIntervalDescription": "Datenabfrage-Intervall vom Kostal-Wechselrichter in Sekunden",
+      "autoDetectModel": "Modell automatisch erkennen",
+      "autoDetectModelDescription": "Versuche das Wechselrichter-Modell automatisch zu erkennen"
     },
-    "power": {
-      "title": "⚡ Leistungsmessung",
-      "description": "Konfiguriere, wie Leistungswerte angezeigt werden",
-      "usePowerOutlets": "Steckdosen-Service für Leistungsmessung",
-      "usePowerOutletsDescription": "Leistungswerte in echten Watt anzeigen (Steckdose) statt in Lux (Lichtsensor)",
-      "maxEnergyPerDay": "Maximale Tagesenergie",
-      "maxEnergyPerDayDescription": "Maximale Tagesenergie in kWh für bessere Prozentberechnung"
-    },
-    "monitoring": {
-      "title": "📊 Überwachung",
-      "description": "Einstellungen für Geräteüberwachung und Offline-Erkennung",
-      "offlineThresholdMinutes": "Offline-Schwelle (Minuten)",
-      "offlineThresholdMinutesDescription": "Minuten ohne MQTT-Daten, bevor Geräte als offline markiert werden"
+    "childBridge": {
+      "title": "🔗 Child Bridge",
+      "description": "Child Bridge-Konfiguration für bessere Stabilität",
+      "enabled": "Child Bridge aktivieren",
+      "enabledDescription": "Plugin als Child Bridge ausführen (empfohlen für Stabilität)",
+      "port": "Child Bridge Port",
+      "portDescription": "Port für Child Bridge (nur wenn Child Bridge aktiviert)",
+      "username": "Child Bridge Username",
+      "usernameDescription": "Username für Child Bridge (automatisch generiert)",
+      "pin": "Child Bridge PIN",
+      "pinDescription": "PIN für Child Bridge (automatisch generiert)"
     },
     "reports": {
       "title": "📈 Tagesberichte",

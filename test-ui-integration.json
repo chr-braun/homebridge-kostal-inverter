@@ -1,0 +1,33 @@
+{
+  "bridge": {
+    "name": "Test UI Integration",
+    "username": "CC:22:3D:E3:CE:36",
+    "port": 51029,
+    "pin": "031-45-158"
+  },
+  "platforms": [
+    {
+      "name": "Kostal Solar Generator",
+      "platform": "KostalInverter",
+      "kostal": {
+        "host": "192.168.178.71",
+        "username": "pvserver",
+        "password": "pny6F0y9tC7qXnQ",
+        "autoDetectModel": true
+      },
+      "language": "de",
+      "pollingInterval": 30,
+      "childBridge": true,
+      "childBridgePort": 8582,
+      "childBridgeUsername": "0E:16:CA:9B:88:55",
+      "childBridgePin": "542-50-233",
+      "dailyReports": {
+        "enabled": true,
+        "language": "de",
+        "reportStyle": "motion",
+        "reportTime": "sunset+30",
+        "includeComparisons": true
+      }
+    }
+  ]
+}

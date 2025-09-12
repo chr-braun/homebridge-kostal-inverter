@@ -92,108 +92,42 @@
         "default": "542-50-232",
         "description": "PIN for Child Bridge (auto-generated)"
       },
-      "pushNotifications": {
-        "title": "Push Notifications",
+      "dailyReports": {
+        "title": "Daily Reports",
         "type": "object",
         "properties": {
           "enabled": {
-            "title": "Enable Push Notifications",
+            "title": "Enable Daily Reports",
             "type": "boolean",
             "default": false,
-            "description": "Send daily solar reports via push notifications"
+            "description": "Send daily solar generation reports"
           },
-          "time": {
-            "title": "Notification Time",
+          "language": {
+            "title": "Report Language",
             "type": "string",
-            "default": "20:00",
-            "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
-            "description": "Time for daily notifications (HH:MM format)"
+            "enum": ["de", "en", "fr"],
+            "default": "de",
+            "description": "Language for daily reports"
           },
-          "services": {
-            "title": "Notification Services",
-            "type": "object",
-            "properties": {
-              "pushover": {
-                "title": "Pushover",
-                "type": "object",
-                "properties": {
-                  "enabled": {
-                    "title": "Enable Pushover",
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable Pushover notifications"
-                  },
-                  "userKey": {
-                    "title": "Pushover User Key",
-                    "type": "string",
-                    "description": "Your Pushover user key"
-                  },
-                  "appToken": {
-                    "title": "Pushover App Token",
-                    "type": "string",
-                    "description": "Your Pushover app token"
-                  }
-                }
-              },
-              "telegram": {
-                "title": "Telegram",
-                "type": "object",
-                "properties": {
-                  "enabled": {
-                    "title": "Enable Telegram",
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable Telegram notifications"
-                  },
-                  "botToken": {
-                    "title": "Telegram Bot Token",
-                    "type": "string",
-                    "description": "Your Telegram bot token"
-                  },
-                  "chatId": {
-                    "title": "Telegram Chat ID",
-                    "type": "string",
-                    "description": "Your Telegram chat ID"
-                  }
-                }
-              },
-              "homekit": {
-                "title": "HomeKit",
-                "type": "object",
-                "properties": {
-                  "enabled": {
-                    "title": "Enable HomeKit Notifications",
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable HomeKit notifications"
-                  },
-                  "accessoryName": {
-                    "title": "Notification Accessory Name",
-                    "type": "string",
-                    "default": "Kostal Solar Report",
-                    "description": "Name for the notification accessory"
-                  }
-                }
-              },
-              "webhook": {
-                "title": "Webhook",
-                "type": "object",
-                "properties": {
-                  "enabled": {
-                    "title": "Enable Webhook",
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable webhook notifications"
-                  },
-                  "url": {
-                    "title": "Webhook URL",
-                    "type": "string",
-                    "format": "uri",
-                    "description": "Webhook URL for notifications"
-                  }
-                }
-              }
-            }
+          "reportStyle": {
+            "title": "Report Style",
+            "type": "string",
+            "enum": ["motion", "doorbell", "switch"],
+            "default": "motion",
+            "description": "How reports are delivered in HomeKit"
+          },
+          "reportTime": {
+            "title": "Report Time",
+            "type": "string",
+            "enum": ["sunset", "sunset+30", "sunset+60", "20:00", "21:00", "22:00"],
+            "default": "sunset+30",
+            "description": "When to send daily reports"
+          },
+          "includeComparisons": {
+            "title": "Include Comparisons",
+            "type": "boolean",
+            "default": true,
+            "description": "Include comparisons with previous days"
           }
         }
       }
