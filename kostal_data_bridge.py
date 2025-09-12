@@ -221,13 +221,21 @@ class KostalDataBridge:
                 'status': 0
             }
         finally:
+            # Ordnungsgemäße Session-Cleanup
             try:
                 if self.client:
                     await self.client.logout()
-                if self.session:
+            except Exception as e:
+                if len(sys.argv) > 1 and '--debug' in sys.argv:
+                    print(f"DEBUG: Logout-Fehler: {e}", file=sys.stderr)
+            
+            try:
+                if self.session and not self.session.closed:
                     await self.session.close()
-            except:
-                pass
+                    await asyncio.sleep(0.1)  # Kurz warten für ordnungsgemäße Cleanup
+            except Exception as e:
+                if len(sys.argv) > 1 and '--debug' in sys.argv:
+                    print(f"DEBUG: Session-Close-Fehler: {e}", file=sys.stderr)
 
 def main():
     parser = argparse.ArgumentParser(description='Kostal Data Bridge')

@@ -199,9 +199,9 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
     // Alle 30 Sekunden Daten abrufen
     this.dataPollingInterval = setInterval(() => {
       this.fetchKostalData();
-    }, 30000);
+    }, 60000);
 
-    this.log.info('Daten-Polling gestartet (alle 30 Sekunden)');
+    this.log.info('Daten-Polling gestartet (alle 60 Sekunden - User-Lock-Schutz)');
   }
 
   /**
