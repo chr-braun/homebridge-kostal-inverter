@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2025-09-14
+
+### Added
+- **🔌 Direct Kostal API Integration**: Complete Python-based integration with Kostal Plenticore inverters
+- **📊 Comprehensive Data Monitoring**: 25+ HomeKit accessories for all solar data points
+- **🌍 Multi-Language Support**: German, English, French, Italian, Chinese localization
+- **🔄 Automatic Cache Management**: Plugin cache cleared on every start for fresh configuration
+- **📈 Real-time Solar Analytics**: Live DC/AC power, energy production, and efficiency metrics
+- **🏠 HomeKit Integration**: Temperature, Light, Humidity, and Motion sensors for all data points
+- **🔧 Child Bridge Support**: Automatic child bridge configuration with PIN generation
+- **📱 Daily Reports**: Configurable end-of-day solar production summaries
+- **🐍 Python Bridge**: Robust Python script for Kostal API communication with error handling
+
+### Technical
+- **Direct API Access**: Bypasses MQTT, connects directly to Kostal inverter API
+- **Python Integration**: `kostal_data_bridge.py` script for reliable data fetching
+- **TypeScript Implementation**: Full type safety with comprehensive error handling
+- **Memory Management**: Automatic cache clearing prevents stale configuration issues
+- **Data Validation**: Smart filtering and validation of all solar data points
+- **Extensible Architecture**: Easy addition of new data points and features
+
+### Fixed
+- **Configuration Loading**: Proper loading of credentials from Homebridge configuration
+- **Cache Persistence**: Automatic cache clearing ensures fresh configuration on every start
+- **Data Accuracy**: Direct API access provides real-time, accurate solar data
+- **Error Handling**: Comprehensive error handling for network and API issues
+
+### Documentation
+- **Complete Setup Guide**: Step-by-step installation and configuration instructions
+- **API Integration Guide**: Detailed Python script setup and usage
+- **Multi-Language Examples**: Configuration examples for all supported languages
+- **Troubleshooting**: Comprehensive troubleshooting guide for common issues
+
 ## [1.2.4] - 2025-01-31
 
 ### Added

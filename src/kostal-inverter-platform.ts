@@ -27,6 +27,9 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
   ) {
     this.i18n = new I18nManager(config.language || 'de');
     
+    // Cache bei jedem Start löschen für frische Konfiguration
+    this.clearAccessoryCache();
+    
     this.log.info(this.i18n.t('platform.initialized', 'Kostal Inverter Platform initialisiert'));
 
     // Child Bridge Support
@@ -55,6 +58,33 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
     this.api.on('shutdown', () => {
       this.cleanup();
     });
+  }
+
+  /**
+   * Accessory Cache löschen für frische Konfiguration
+   */
+  private clearAccessoryCache(): void {
+    try {
+      this.log.info('🧹 Lösche Accessory-Cache für frische Konfiguration...');
+      
+      // Alle registrierten Accessories entfernen
+      const platformName = 'KostalInverter';
+      const existingAccessories = this.accessories.filter(
+        (accessory: PlatformAccessory) => accessory.context.platform === platformName
+      );
+      
+      if (existingAccessories.length > 0) {
+        this.log.info(`🗑️ Entferne ${existingAccessories.length} gecachte Accessories`);
+        this.api.unregisterPlatformAccessories('homebridge-kostal-inverter', platformName, existingAccessories);
+      }
+      
+      // Accessories-Array leeren
+      this.accessories.length = 0;
+      
+      this.log.info('✅ Accessory-Cache erfolgreich gelöscht');
+    } catch (error) {
+      this.log.error('❌ Fehler beim Löschen des Accessory-Cache:', error);
+    }
   }
 
   /**
@@ -144,10 +174,11 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
           kostal: {
             host: kostalConfig.host,
             username: kostalConfig.username || 'pvserver',
-            password: kostalConfig.password || 'pny6F0y9tC7qXnQ'
+            password: kostalConfig.password || 'pvwr'
           }
         };
         this.log.info(`Kostal-Konfiguration geladen: ${kostalConfig.host}`);
+        this.log.info(`Username: ${kostalConfig.username}`);
       } else {
         this.log.warn('Keine Kostal-Konfiguration gefunden. Verwende Standard-Werte für Tests.');
         // Fallback für Tests
@@ -155,7 +186,7 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
           kostal: {
             host: '192.168.178.71',
             username: 'pvserver',
-            password: 'pny6F0y9tC7qXnQ'
+            password: 'xucqa9-hexsaX-vyfqyr'
           }
         };
       }
@@ -413,7 +444,7 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
       //   }
       // });
 
-      this.log.info(`✅ Kostal-Daten: Solar ${processedData.power}W, AC ${processedData.ac_power}W, Netz ${processedData.grid_power}W, Haus ${processedData.home_consumption}W`);
+      this.log.info(`✅ Live-Daten: DC ${processedData.power}W → AC ${processedData.ac_power}W | Netz ${processedData.grid_power}W | Haus ${processedData.home_consumption}W | Heute ${processedData.energy_today}kWh`);
       
     } catch (error) {
       this.log.error('❌ Fehler beim Verarbeiten der Python-Daten:', error);
@@ -481,31 +512,46 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
   private discoverDevices(): void {
     const inverterConfig = this.config.inverter || {};
     
-    // Hauptwechselrichter erstellen
-    const mainDevice = {
-      name: inverterConfig.name || 'Kostal Plenticore',
-      model: inverterConfig.model || 'Plenticore 10.0',
-      serialNumber: inverterConfig.serialNumber || '123456789',
-      type: 'main',
-      maxPower: inverterConfig.maxPower || 10000,
-      maxEnergyPerDay: inverterConfig.maxEnergyPerDay || 20
-    };
+    // Alle Kostal-Live-Datenpunkte als Accessories erstellen
+    const kostalDevices = [
+      // Leistungsdaten (als Temperatursensoren mit Watt-Werten)
+      { name: 'DC-Leistung', type: 'power_dc', dataKey: 'power', unit: 'W', maxValue: 12000, minValue: 0 },
+      { name: 'AC-Leistung', type: 'power_ac', dataKey: 'ac_power', unit: 'W', maxValue: 12000, minValue: 0 },
+      { name: 'Netzleistung', type: 'power_grid', dataKey: 'grid_power', unit: 'W', maxValue: 12000, minValue: -12000 },
+      { name: 'Hausverbrauch', type: 'power_home', dataKey: 'home_consumption', unit: 'W', maxValue: 10000, minValue: 0 },
+      { name: 'Eigenverbrauch', type: 'power_own', dataKey: 'home_own', unit: 'W', maxValue: 10000, minValue: 0 },
+      
+      // PV-String Leistungen
+      { name: 'String 1 Leistung', type: 'power_string1', dataKey: 'power_dc1', unit: 'W', maxValue: 6000, minValue: 0 },
+      { name: 'String 2 Leistung', type: 'power_string2', dataKey: 'power_dc2', unit: 'W', maxValue: 6000, minValue: 0 },
+      
+      // Spannungen (als Temperatursensoren mit Volt-Werten skaliert)
+      { name: 'String 1 Spannung', type: 'voltage_dc1', dataKey: 'voltage_dc1', unit: 'V', maxValue: 600, minValue: 0, scale: 0.1 },
+      { name: 'String 2 Spannung', type: 'voltage_dc2', dataKey: 'voltage_dc2', unit: 'V', maxValue: 600, minValue: 0, scale: 0.1 },
+      { name: 'AC-Spannung', type: 'voltage_ac', dataKey: 'voltage_ac', unit: 'V', maxValue: 300, minValue: 180, scale: 0.1 },
+      
+      // Energie (als Lichtsensoren mit kWh-Werten)
+      { name: 'Tagesertrag', type: 'energy_today', dataKey: 'energy_today', unit: 'kWh', maxValue: 100, minValue: 0, scale: 1000 },
+      { name: 'Gesamtertrag', type: 'energy_total', dataKey: 'energy_total', unit: 'MWh', maxValue: 100000, minValue: 0, scale: 0.001 },
+      
+      // Frequenz
+      { name: 'Netzfrequenz', type: 'frequency', dataKey: 'frequency', unit: 'Hz', maxValue: 55, minValue: 45, scale: 1 },
+      
+      // Statistiken (als Luftfeuchtigkeit für Prozentangaben)
+      { name: 'Autarkie heute', type: 'autarky', dataKey: 'autarky_today', unit: '%', maxValue: 100, minValue: 0 },
+      { name: 'Eigenverbrauchsrate', type: 'own_rate', dataKey: 'own_consumption_rate', unit: '%', maxValue: 100, minValue: 0 },
+      
+      // CO2-Einsparung
+      { name: 'CO2-Einsparung heute', type: 'co2_saving', dataKey: 'co2_saving_today', unit: 'kg', maxValue: 50, minValue: 0, scale: 10 },
+      
+      // Status (als Bewegungssensor)
+      { name: 'Wechselrichter Status', type: 'status', dataKey: 'status', unit: '', maxValue: 10, minValue: 0 }
+    ];
 
-    this.createAccessory(mainDevice);
-
-    // String-Accessories erstellen (falls konfiguriert)
-    const stringCount = inverterConfig.strings || 2; // Standard: 2 Strings
-    for (let i = 1; i <= stringCount; i++) {
-      const stringDevice = {
-        name: `String ${i}`,
-        model: `${inverterConfig.model || 'Plenticore'} String ${i}`,
-        serialNumber: `${inverterConfig.serialNumber || '123456789'}-S${i}`,
-        type: 'string',
-        stringNumber: i
-      };
-
-      this.createAccessory(stringDevice);
-    }
+    // Erstelle Accessories für alle Datenpunkte
+    kostalDevices.forEach(device => {
+      this.createKostalAccessory(device);
+    });
 
     // Motion Sensor für Daily Reports erstellen (falls aktiviert)
     if (this.dailyReportsConfig?.enabled && this.dailyReportsConfig.reportStyle === 'motion') {
@@ -514,7 +560,129 @@ export class KostalInverterPlatform implements DynamicPlatformPlugin {
   }
 
   /**
-   * Accessory erstellen oder aus Cache laden
+   * Kostal-spezifisches Accessory erstellen
+   */
+  private createKostalAccessory(device: any): void {
+    const uuid = this.api.hap.uuid.generate(`kostal-${device.type}`);
+    
+    // Prüfe ob Accessory bereits existiert
+    const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+    
+    if (existingAccessory) {
+      this.log.info(`Wiederhergestellter Accessory aus Cache: ${device.name}`);
+      this.updateKostalAccessory(existingAccessory, device);
+      return;
+    }
+
+    // Erstelle neues Accessory
+    this.log.info(`Erstelle neues Accessory: ${device.name}`);
+    const accessory = new this.api.platformAccessory(device.name, uuid);
+    
+    accessory.context.device = device;
+    this.accessories.push(accessory);
+    this.api.registerPlatformAccessories('homebridge-kostal-inverter', 'KostalInverter', [accessory]);
+    
+    this.updateKostalAccessory(accessory, device);
+  }
+
+  /**
+   * Kostal-Accessory mit Services konfigurieren
+   */
+  private updateKostalAccessory(accessory: PlatformAccessory, device: any): void {
+    // Accessory Info Service
+    accessory.getService(this.Service.AccessoryInformation)!
+      .setCharacteristic(this.Characteristic.Manufacturer, 'Kostal')
+      .setCharacteristic(this.Characteristic.Model, device.type)
+      .setCharacteristic(this.Characteristic.SerialNumber, `kostal-${device.type}`)
+      .setCharacteristic(this.Characteristic.FirmwareRevision, '1.3.3');
+
+    // Je nach Datentyp unterschiedliche Services verwenden
+    let service: Service;
+    
+    switch (device.type) {
+      case 'power_dc':
+      case 'power_ac':
+      case 'power_grid':
+      case 'power_home':
+      case 'power_own':
+      case 'power_string1':
+      case 'power_string2':
+        // Leistungswerte als Temperatursensor (Celsius = Watt/100)
+        service = accessory.getService(this.Service.TemperatureSensor) || accessory.addService(this.Service.TemperatureSensor);
+        service.setCharacteristic(this.Characteristic.Name, device.name);
+        service.getCharacteristic(this.Characteristic.CurrentTemperature)
+          .onGet(() => {
+            const value = this.deviceData.get(device.dataKey) || 0;
+            return Math.max(-270, Math.min(100, value / 100)); // Skalierung für HomeKit (-270°C bis 100°C)
+          });
+        break;
+        
+      case 'voltage_dc1':
+      case 'voltage_dc2':
+      case 'voltage_ac':
+      case 'frequency':
+        // Spannungen und Frequenz als Temperatursensor (skaliert)
+        service = accessory.getService(this.Service.TemperatureSensor) || accessory.addService(this.Service.TemperatureSensor);
+        service.setCharacteristic(this.Characteristic.Name, device.name);
+        service.getCharacteristic(this.Characteristic.CurrentTemperature)
+          .onGet(() => {
+            const value = this.deviceData.get(device.dataKey) || 0;
+            const scaledValue = value * (device.scale || 1);
+            return Math.max(-270, Math.min(100, scaledValue));
+          });
+        break;
+        
+      case 'energy_today':
+      case 'energy_total':
+      case 'co2_saving':
+        // Energiewerte als Lichtsensor (Lux = kWh * 1000)
+        service = accessory.getService(this.Service.LightSensor) || accessory.addService(this.Service.LightSensor);
+        service.setCharacteristic(this.Characteristic.Name, device.name);
+        service.getCharacteristic(this.Characteristic.CurrentAmbientLightLevel)
+          .onGet(() => {
+            const value = this.deviceData.get(device.dataKey) || 0;
+            const scaledValue = value * (device.scale || 1);
+            return Math.max(0.0001, Math.min(100000, scaledValue));
+          });
+        break;
+        
+      case 'autarky':
+      case 'own_rate':
+        // Prozentangaben als Luftfeuchtigkeitssensor
+        service = accessory.getService(this.Service.HumiditySensor) || accessory.addService(this.Service.HumiditySensor);
+        service.setCharacteristic(this.Characteristic.Name, device.name);
+        service.getCharacteristic(this.Characteristic.CurrentRelativeHumidity)
+          .onGet(() => {
+            const value = this.deviceData.get(device.dataKey) || 0;
+            return Math.max(0, Math.min(100, value));
+          });
+        break;
+        
+      case 'status':
+        // Status als Bewegungssensor (aktiv wenn Status > 0)
+        service = accessory.getService(this.Service.MotionSensor) || accessory.addService(this.Service.MotionSensor);
+        service.setCharacteristic(this.Characteristic.Name, device.name);
+        service.getCharacteristic(this.Characteristic.MotionDetected)
+          .onGet(() => {
+            const status = this.deviceData.get(device.dataKey) || 0;
+            return status >= 6; // Status 6 = MPP-Betrieb
+          });
+        break;
+        
+      default:
+        // Fallback: Temperatursensor
+        service = accessory.getService(this.Service.TemperatureSensor) || accessory.addService(this.Service.TemperatureSensor);
+        service.setCharacteristic(this.Characteristic.Name, device.name);
+        service.getCharacteristic(this.Characteristic.CurrentTemperature)
+          .onGet(() => {
+            const value = this.deviceData.get(device.dataKey) || 0;
+            return Math.max(-270, Math.min(100, value));
+          });
+    }
+  }
+
+  /**
+   * Accessory erstellen oder aus Cache laden (Legacy-Methode)
    */
   private createAccessory(device: any): void {
     const uuid = this.api.hap.uuid.generate(device.serialNumber);

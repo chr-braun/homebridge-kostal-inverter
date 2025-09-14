@@ -4,25 +4,25 @@
 [![Downloads](https://img.shields.io/npm/dm/homebridge-kostal-inverter.svg)](https://www.npmjs.com/package/homebridge-kostal-inverter)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Ein professionelles Homebridge-Plugin für Kostal-Solarwechselrichter mit MQTT-Integration, mehrsprachiger Benutzeroberfläche und Child Bridge-Unterstützung.
+Ein professionelles Homebridge-Plugin für Kostal-Solarwechselrichter mit direkter API-Integration, mehrsprachiger Benutzeroberfläche und Child Bridge-Unterstützung.
 
 ## 🚀 Features
 
-- **⚡ Kostal-Wechselrichter Integration** - Vollständige Unterstützung für alle Kostal-Modelle
-- **📡 MQTT-Protokoll** - Echtzeit-Datenübertragung über MQTT
+- **🔌 Direkte Kostal API-Integration** - Direkte Kommunikation mit Kostal Plenticore Wechselrichtern
+- **📊 Umfassendes Daten-Monitoring** - 25+ HomeKit Accessories für alle Solar-Datenpunkte
 - **🌍 Mehrsprachige UI** - Deutsch, Englisch, Französisch, Italienisch, Chinesisch
 - **🔌 Child Bridge** - Kann als separate Bridge laufen für bessere Stabilität
-- **📊 Energie-Monitoring** - Überwachung von Leistung, Energie und Status
-- **🏠 HomeKit-Integration** - Nahtlose Integration in Apple Home
-- **🔧 Konfigurierbare Topics** - Flexible MQTT-Topic-Konfiguration
-- **📱 Real-time Updates** - Live-Daten alle 30 Sekunden
+- **📈 Echtzeit Solar-Analytics** - Live DC/AC-Leistung, Energieproduktion und Effizienz-Metriken
+- **🏠 HomeKit-Integration** - Temperatur-, Licht-, Feuchtigkeits- und Bewegungs-Sensoren
+- **🐍 Python Bridge** - Robuste Python-Script für Kostal API-Kommunikation
+- **📱 Tägliche Berichte** - Konfigurierbare Tagesabschluss-Zusammenfassungen
 
 ## 📋 Voraussetzungen
 
-- **Node.js** 18.0.0 oder höher
+- **Node.js** 16.0.0 oder höher
 - **Homebridge** 1.6.0 oder höher
-- **Kostal-Wechselrichter** mit Netzwerk-Zugang
-- **MQTT-Broker** (z.B. Mosquitto)
+- **Kostal Plenticore Wechselrichter** mit Netzwerk-Zugang
+- **Python 3.7+** für Kostal API-Integration
 
 ## 🔧 Installation
 
@@ -44,23 +44,16 @@ npm install -g homebridge-kostal-inverter
 ### Basis-Konfiguration
 
 ```json
-    {
-      "platform": "KostalInverter",
+{
+  "platform": "KostalInverter",
   "name": "Kostal Solar",
-  "mqtt": {
+  "kostal": {
     "host": "192.168.1.100",
-    "port": 1883,
-    "username": "your_username",
-    "password": "your_password",
-    "clientId": "homebridge-kostal"
-      },
-      "inverter": {
-    "name": "Kostal Piko",
-    "model": "Piko 10.0",
-    "serialNumber": "123456789"
+    "username": "pvserver",
+    "password": "your_password"
   },
   "language": "de",
-      "childBridge": false
+  "childBridge": false
 }
 ```
 
@@ -70,33 +63,22 @@ npm install -g homebridge-kostal-inverter
 {
   "platform": "KostalInverter",
   "name": "Kostal Solar",
-  "mqtt": {
+  "kostal": {
     "host": "192.168.1.100",
-    "port": 1883,
-    "username": "your_username",
-    "password": "your_password",
-    "clientId": "homebridge-kostal",
-    "topics": {
-      "power": "kostal/inverter/power",
-      "energy": "kostal/inverter/energy_today",
-      "status": "kostal/inverter/status",
-      "temperature": "kostal/inverter/temperature",
-      "voltage": "kostal/inverter/voltage_ac",
-      "frequency": "kostal/inverter/frequency"
-    }
-  },
-  "inverter": {
-    "name": "Kostal Piko",
-    "model": "Piko 10.0",
-    "serialNumber": "123456789",
-    "maxPower": 10000,
-    "maxEnergyPerDay": 20,
-    "strings": 2
+    "username": "pvserver",
+    "password": "your_password"
   },
   "language": "de",
-  "childBridge": false,
-  "updateInterval": 30,
-  "debug": false
+  "childBridge": true,
+  "childBridgePort": 8581,
+  "updateInterval": 60,
+  "debug": false,
+  "dailyReports": {
+    "enabled": true,
+    "deliveryMethod": "motion",
+    "time": "sunset",
+    "language": "de"
+  }
 }
 ```
 
@@ -108,33 +90,46 @@ npm install -g homebridge-kostal-inverter
 - 🇮🇹 **Italienisch** (it)
 - 🇨🇳 **Chinesisch** (zh)
 
-## 📊 MQTT-Topics
+## 📊 Überwachte Datenpunkte
 
-Das Plugin erwartet folgende MQTT-Topics von Ihrem Kostal-Wechselrichter:
+Das Plugin überwacht folgende Daten direkt von Ihrem Kostal Plenticore Wechselrichter:
 
-### Leistung
-- `kostal/inverter/power` - Aktuelle AC-Leistung in Watt
-- `kostal/inverter/power_dc1` - DC-Leistung String 1
-- `kostal/inverter/power_dc2` - DC-Leistung String 2
+### Leistung & Energie
+- **DC-Leistung** - String 1 & 2 Leistung in Watt
+- **AC-Leistung** - Ausgangsleistung in Watt
+- **Netzleistung** - Einspeisung/Bezug in Watt
+- **Hausverbrauch** - Aktueller Verbrauch in Watt
+- **Eigenverbrauch** - Selbst genutzte Solar-Energie in Watt
 
-### Energie
-- `kostal/inverter/energy_today` - Tagesenergie in kWh
-- `kostal/inverter/energy_total` - Gesamtenergie in kWh
+### Energie & Statistiken
+- **Tagesertrag** - Heutige Energieproduktion in kWh
+- **Gesamtertrag** - Gesamte Energieproduktion in kWh
+- **Autarkie heute** - Selbstversorgungsgrad in %
+- **Eigenverbrauchsrate** - Anteil selbst genutzter Energie in %
 
-### Status & Messwerte
-- `kostal/inverter/status` - Wechselrichter-Status (0/1)
-- `kostal/inverter/temperature` - Temperatur in °C
-- `kostal/inverter/voltage_ac` - AC-Spannung in Volt
-- `kostal/inverter/frequency` - Netzfrequenz in Hz
+### Technische Werte
+- **DC-Spannungen** - String 1 & 2 Spannungen in Volt
+- **AC-Spannung** - Ausgangsspannung in Volt
+- **Netzfrequenz** - Netzspannungsfrequenz in Hz
+- **Wechselrichter-Temperatur** - Gerätetemperatur in °C
+- **Wechselrichter-Status** - Betriebsstatus (MPP, Standby, etc.)
 
 ## 🏠 HomeKit-Integration
 
-Das Plugin erstellt folgende HomeKit-Geräte:
+Das Plugin erstellt 25+ HomeKit Accessories für alle Solar-Datenpunkte:
 
-- **Light Sensor** - Zeigt aktuelle Leistung als "Lux"-Wert
+### Sensoren
+- **Light Sensor** - DC/AC-Leistung, String-Leistungen
 - **Temperature Sensor** - Wechselrichter-Temperatur
-- **Humidity Sensor** - Tagesenergie als Prozent
+- **Humidity Sensor** - Energie-Statistiken (Tagesertrag, Autarkie, etc.)
+- **Motion Sensor** - Wechselrichter-Status, tägliche Berichte
 - **Contact Sensor** - Online/Offline-Status
+
+### Datenpunkte
+- **Leistung**: DC-Leistung, AC-Leistung, Netzleistung, Hausverbrauch, Eigenverbrauch
+- **Energie**: Tagesertrag, Gesamtertrag, Autarkie, Eigenverbrauchsrate
+- **Spannungen**: DC-Spannungen (String 1/2), AC-Spannung
+- **Technisch**: Netzfrequenz, Wechselrichter-Status, CO2-Einsparung
 
 ## 🔌 Child Bridge
 
@@ -147,9 +142,15 @@ Aktivieren Sie die Child Bridge-Funktion für bessere Stabilität:
 }
 ```
 
-## 🔗 Echte Kostal-Daten
+**Vorteile der Child Bridge:**
+- Bessere Stabilität bei vielen Accessories
+- Isolierte Fehlerbehandlung
+- Automatische PIN-Generierung
+- Separate Bridge-Konfiguration
 
-Das Plugin kommuniziert direkt mit deinem Kostal-Wechselrichter über die REST-API:
+## 🔗 Direkte Kostal API-Integration
+
+Das Plugin kommuniziert direkt mit deinem Kostal Plenticore Wechselrichter über die REST-API:
 
 ```bash
 # 1. Plugin installieren
@@ -165,13 +166,15 @@ npm run setup-kostal
 homebridge -D
 ```
 
-**Direkte Kostal-API-Integration:**
-- Kein MQTT-Broker erforderlich
-- Direkte Kommunikation mit Kostal-Wechselrichter
-- Automatische Datenabfrage alle 30 Sekunden
-- Unterstützt alle Kostal Plenticore Modelle
+**Vorteile der direkten API-Integration:**
+- ✅ Kein MQTT-Broker erforderlich
+- ✅ Direkte Kommunikation mit Kostal-Wechselrichter
+- ✅ Automatische Datenabfrage alle 60 Sekunden
+- ✅ Unterstützt alle Kostal Plenticore Modelle
+- ✅ Echtzeit-Daten ohne Verzögerung
+- ✅ Robuste Fehlerbehandlung
 
-**Installation der Python-Dependencies:**
+**Python-Dependencies Installation:**
 - Automatisch bei `npm install` (kann fehlschlagen auf manchen Systemen)
 - Manuell mit `bash install-python-deps.sh`
 - Oder direkt: `pip3 install pykoplenti`
@@ -179,24 +182,31 @@ homebridge -D
 **Troubleshooting:**
 - Bei "externally-managed-environment" Fehler: `pip3 install --user pykoplenti`
 - Bei Permission-Fehlern: `sudo pip3 install pykoplenti`
-
-Siehe [KOSTAL-REAL-DATA-GUIDE.md](KOSTAL-REAL-DATA-GUIDE.md) für Details.
+- Bei Verbindungsproblemen: Überprüfe IP-Adresse und Credentials
 
 ## 🐛 Fehlerbehebung
 
 ### Häufige Probleme
 
-1. **MQTT-Verbindung fehlgeschlagen**
-   - Überprüfen Sie MQTT-Broker-Einstellungen
-   - Prüfen Sie Netzwerkverbindung
+1. **Kostal API-Verbindung fehlgeschlagen**
+   - Überprüfen Sie IP-Adresse und Credentials
+   - Prüfen Sie Netzwerkverbindung zum Wechselrichter
+   - Testen Sie mit: `python3 kostal_data_bridge.py --host IP --username USER --password PASS`
 
 2. **Keine Daten angezeigt**
-   - Überprüfen Sie MQTT-Topics
+   - Überprüfen Sie Python-Installation: `python3 --version`
+   - Installieren Sie pykoplenti: `pip3 install pykoplenti`
    - Aktivieren Sie Debug-Modus
 
 3. **HomeKit-Geräte nicht sichtbar**
    - Starten Sie Homebridge neu
    - Überprüfen Sie Konfiguration
+   - Cache wird automatisch bei jedem Start gelöscht
+
+4. **Python-Dependencies Probleme**
+   - `pip3 install --user pykoplenti` (für externally-managed-environment)
+   - `sudo pip3 install pykoplenti` (für Permission-Fehler)
+   - `bash install-python-deps.sh` (automatische Installation)
 
 ### Debug-Modus
 
@@ -234,4 +244,4 @@ Dieses Projekt ist unter der MIT-Lizenz lizenziert. Siehe [LICENSE](LICENSE) fü
 
 **Entwickelt mit ❤️ für die Homebridge-Community**
 
-*Version 1.0.0 - Vollständig funktionsfähig und produktionsbereit*
+*Version 1.4.0 - Vollständig funktionsfähig mit direkter Kostal API-Integration*

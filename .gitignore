@@ -15,13 +15,14 @@ dist/
 .env.test.local
 .env.production.local
 
-# IDE
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# OS
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -88,3 +89,44 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+
+# Test files with credentials
+test-*-credentials.json
+test-*-integration.json
+
+# Backup files
+*backup*
+*.backup
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Homebridge
+.homebridge/

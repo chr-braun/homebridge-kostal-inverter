@@ -119,69 +119,85 @@ class KostalDataBridge:
                 for module_id, collection in all_values.items():
                     print(f"DEBUG: Module {module_id} Type: {type(collection)}", file=sys.stderr)
                     if hasattr(collection, '__iter__'):
-                        print(f"DEBUG: Module {module_id}: {[(pd.id, pd.value, pd.unit) for pd in collection if hasattr(pd, 'id')]}", file=sys.stderr)
+                        values_list = [(pd.id, pd.value, pd.unit) for pd in collection if hasattr(pd, 'id')]
+                        print(f"DEBUG: Module {module_id}: {values_list}", file=sys.stderr)
+                        if not values_list:  # Wenn leer, teste Einzelwerte
+                            print(f"DEBUG: Module {module_id} ist leer, teste Einzelwerte...", file=sys.stderr)
             
-            # Extrahiere Werte aus allen Modulen
-            for module_id, process_data_collection in all_values.items():
-                if not process_data_collection:  # Leere Collections überspringen
-                    continue
-                for data_point in process_data_collection:
-                    if not hasattr(data_point, 'value') or not hasattr(data_point, 'id'):
-                        continue
-                    value = float(data_point.value) if data_point.value is not None else 0
-                    data_id = data_point.id.lower()
+            # Korrekte Datenextraktion: Module einzeln abfragen und per Dictionary-Zugriff
+            critical_data_map = {
+                'devices:local': ['Dc_P', 'Grid_P', 'Home_P', 'HomeOwn_P', 'Inverter:State'],
+                'devices:local:ac': ['P', 'Frequency', 'L1_U'],
+                'devices:local:pv1': ['P', 'U', 'I'],
+                'devices:local:pv2': ['P', 'U', 'I'],
+                'scb:statistic:EnergyFlow': ['Statistic:Yield:Day', 'Statistic:Yield:Total', 'Statistic:CO2Saving:Day', 'Statistic:Autarky:Day', 'Statistic:OwnConsumptionRate:Day']
+            }
+            
+            # Hole Werte modul-weise
+            for module_id, data_ids in critical_data_map.items():
+                try:
+                    module_values = await self.client.get_process_data_values({module_id: data_ids})
+                    collection = module_values.get(module_id)
                     
-                    # Präzises Mapping basierend auf echten Kostal-CamelCase-IDs
-                    if data_id == 'inverter:state':
-                        result['status'] = int(value)  # Inverter State (6 = MPP/Betrieb)
-                    elif data_id == 'dc_p':
-                        result['power'] = value  # DC-Gesamtleistung
-                    elif data_id == 'p' and module_id == 'devices:local:ac':
-                        result['ac_power'] = value  # AC-Gesamtleistung
-                    elif data_id == 'grid_p':
-                        result['grid_power'] = value  # Netzleistung (negativ = Einspeisung)
-                    elif data_id == 'home_p':
-                        result['home_consumption'] = value  # Hausverbrauch
-                    elif data_id == 'homeown_p':
-                        result['home_own'] = value  # Eigenverbrauch Solar
-                    elif data_id == 'frequency':
-                        result['frequency'] = value  # Netzfrequenz
-                    
-                    # PV-String 1 (devices:local:pv1)
-                    elif data_id == 'u' and module_id == 'devices:local:pv1':
-                        result['voltage_dc1'] = value  # String 1 Spannung
-                    elif data_id == 'i' and module_id == 'devices:local:pv1':
-                        result['current_dc1'] = value  # String 1 Strom
-                    elif data_id == 'p' and module_id == 'devices:local:pv1':
-                        result['power_dc1'] = value  # String 1 Leistung
-                    
-                    # PV-String 2 (devices:local:pv2)
-                    elif data_id == 'u' and module_id == 'devices:local:pv2':
-                        result['voltage_dc2'] = value  # String 2 Spannung
-                    elif data_id == 'i' and module_id == 'devices:local:pv2':
-                        result['current_dc2'] = value  # String 2 Strom
-                    elif data_id == 'p' and module_id == 'devices:local:pv2':
-                        result['power_dc2'] = value  # String 2 Leistung
-                    
-                    # AC-Daten (devices:local:ac)
-                    elif data_id == 'l1_u' and module_id == 'devices:local:ac':
-                        result['voltage_ac'] = value  # AC-Spannung L1
-                    
-                    # Energiestatistiken (scb:statistic:EnergyFlow)
-                    elif data_id == 'statistic:yield:day':
-                        result['energy_today'] = value / 1000  # Tagesertrag Wh zu kWh
-                    elif data_id == 'statistic:yield:total':
-                        result['energy_total'] = value / 1000  # Gesamtertrag Wh zu kWh
-                    elif data_id == 'statistic:co2saving:day':
-                        result['co2_saving_today'] = value / 1000  # CO2-Einsparung heute in kg
-                    elif data_id == 'statistic:autarky:day':
-                        result['autarky_today'] = value  # Autarkie heute in %
-                    elif data_id == 'statistic:ownconsumptionrate:day':
-                        result['own_consumption_rate'] = value  # Eigenverbrauchsrate in %
-                    
-                    # Debug: Zeige unbekannte IDs
-                    elif len(sys.argv) > 1 and '--debug' in sys.argv:
-                        print(f"DEBUG: Unbekannte ID: {data_id} = {value} (Modul: {module_id})", file=sys.stderr)
+                    if collection:
+                        for data_id in data_ids:
+                            try:
+                                data_point = collection[data_id]
+                                value = float(data_point.value) if data_point.value is not None else 0
+                                
+                                # Mapping zu unserem Result-Format
+                                if data_id == 'Dc_P':
+                                    result['power'] = value
+                                elif data_id == 'Grid_P':
+                                    result['grid_power'] = value
+                                elif data_id == 'Home_P':
+                                    result['home_consumption'] = value
+                                elif data_id == 'HomeOwn_P':
+                                    result['home_own'] = value
+                                elif data_id == 'Inverter:State':
+                                    result['status'] = int(value)
+                                elif data_id == 'P' and module_id == 'devices:local:ac':
+                                    result['ac_power'] = value
+                                elif data_id == 'Frequency':
+                                    result['frequency'] = value
+                                elif data_id == 'L1_U':
+                                    result['voltage_ac'] = value
+                                elif data_id == 'P' and module_id == 'devices:local:pv1':
+                                    result['power_dc1'] = value
+                                elif data_id == 'U' and module_id == 'devices:local:pv1':
+                                    result['voltage_dc1'] = value
+                                elif data_id == 'I' and module_id == 'devices:local:pv1':
+                                    result['current_dc1'] = value
+                                elif data_id == 'P' and module_id == 'devices:local:pv2':
+                                    result['power_dc2'] = value
+                                elif data_id == 'U' and module_id == 'devices:local:pv2':
+                                    result['voltage_dc2'] = value
+                                elif data_id == 'I' and module_id == 'devices:local:pv2':
+                                    result['current_dc2'] = value
+                                elif data_id == 'Statistic:Yield:Day':
+                                    result['energy_today'] = value / 1000  # Wh zu kWh
+                                elif data_id == 'Statistic:Yield:Total':
+                                    result['energy_total'] = value / 1000  # Wh zu kWh
+                                elif data_id == 'Statistic:CO2Saving:Day':
+                                    result['co2_saving_today'] = value / 1000  # g zu kg
+                                elif data_id == 'Statistic:Autarky:Day':
+                                    result['autarky_today'] = value
+                                elif data_id == 'Statistic:OwnConsumptionRate:Day':
+                                    result['own_consumption_rate'] = value
+                                
+                                if len(sys.argv) > 1 and '--debug' in sys.argv:
+                                    print(f"DEBUG: {module_id}:{data_id} = {value}", file=sys.stderr)
+                                    
+                            except KeyError:
+                                if len(sys.argv) > 1 and '--debug' in sys.argv:
+                                    print(f"DEBUG: {data_id} nicht verfügbar in {module_id}", file=sys.stderr)
+                            except Exception as e:
+                                if len(sys.argv) > 1 and '--debug' in sys.argv:
+                                    print(f"DEBUG: Fehler bei {module_id}:{data_id}: {e}", file=sys.stderr)
+                                
+                except Exception as e:
+                    if len(sys.argv) > 1 and '--debug' in sys.argv:
+                        print(f"DEBUG: Modul {module_id} Fehler: {e}", file=sys.stderr)
             
             return result
             
