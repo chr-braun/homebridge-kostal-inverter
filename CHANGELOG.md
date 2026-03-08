@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.2] - 2026-03-08
+
+### 🐞 Bug Fix
+
+- **Cache-Handling verbessert**: Ignoriert veraltete oder nicht unterstützte Accessories aus dem Cache anstatt sie zu entfernen, um Abstürze beim Plugin-Start (Child-Bridge-Neustarts) zu verhindern.
+
 ## [2.2.1] - 2026-03-08
 
 ### 🐞 Bug Fix
