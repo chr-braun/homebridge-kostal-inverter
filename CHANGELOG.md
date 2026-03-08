@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.0] - 2026-03-08
+
+### 🚀 Homebridge 2.0 Ready
+
+- **Kompatibilität**: Das Plugin wurde für Homebridge 2.0 vorbereitet.
+- **Anforderungen**: Erfordert nun Node.js >= 18.15.0 und Homebridge >= 1.8.0.
+- **Dependencies**: Aktualisierte Entwicklungsabhängigkeiten und Typ-Definitionen.
+
 ## [2.5.0] - 2026-03-08
 
 ### 🎉 Stable Release
