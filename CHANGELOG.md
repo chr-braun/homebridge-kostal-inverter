@@ -2,9 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-<<<<<<< HEAD
-## [1.4.0] - 2025-09-14
-=======
+## [2.2.1] - 2026-03-08
+
+### 🐞 Bug Fix
+
+- Entfernt veraltete/unkonfigurierte Accessories aus dem Cache beim Start (verhinderte Absturz)
+
 ## [2.2.0] - 2026-03-08
 
 ### 🚀 **Major Feature: True Energy Producer Support**

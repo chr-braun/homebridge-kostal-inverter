@@ -397,7 +397,17 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
    * Accessory aus Cache konfigurieren
    */
   configureAccessory(accessory: PlatformAccessory): void {
-    this.log.info('Accessory aus Cache wiederhergestellt:', accessory.displayName);
+    const device = accessory.context.device || {};
+    this.log.info('Accessory aus Cache wiederhergestellt:', accessory.displayName, 'type', device.type);
+
+    // nur bekannte Gerätetypen akzeptieren
+    const validTypes = ['main','home_power','grid_power','temperature','daily_energy','status'];
+    if (device.type && !validTypes.includes(device.type)) {
+      this.log.warn('Entferne nicht unterstütztes Accessory aus Cache:', accessory.displayName, device.type);
+      this.api.unregisterPlatformAccessories('homebridge-kostal-inverter', 'KostalEnergyGenerator', [accessory]);
+      return;
+    }
+
     this.accessories.push(accessory);
     
     // KostalEnergyAccessory-Instanz erstellen und speichern

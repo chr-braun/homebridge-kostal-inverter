@@ -1,14 +1,8 @@
 {
   "name": "homebridge-kostal-inverter",
-<<<<<<< HEAD
-  "displayName": "Kostal Inverter",
-  "version": "1.4.0",
-  "description": "Homebridge plugin for Kostal solar inverters with direct API integration, multi-language UI, daily push notifications, and child bridge capability",
-=======
   "displayName": "Kostal Solar Energy Generator",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Homebridge plugin for Kostal solar inverters as energy generators with real-time data logging",
->>>>>>> b58f076 (feat: add energy producer outlet support (v2.2.0))
   "main": "dist/index.js",
   "scripts": {
     "build": "rimraf ./dist && tsc && cp -r src/i18n/locales dist/i18n/",
