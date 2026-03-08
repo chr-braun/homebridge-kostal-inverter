@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.0] - 2026-03-08
+
+### 🎉 Stable Release
+
+- **Rundung der Werte**: Alle Leistungswerte (Watt) und Energiewerte (kWh) sowie Temperaturen werden jetzt auf 2 Nachkommastellen gerundet, um eine saubere Anzeige in HomeKit und Logs zu gewährleisten.
+- **Stabilität**: Enthält alle Bugfixes der 2.2.x Serie (Service-Duplikate, Event-Handler, Cache-Cleanup).
+- **Cleanup**: Markiert den Übergang zur stabilen 2.5.x Linie. Ältere Beta-Versionen werden als deprecated markiert.
+
 ## [2.2.6] - 2026-03-08
 
 ### 🐞 Bug Fix

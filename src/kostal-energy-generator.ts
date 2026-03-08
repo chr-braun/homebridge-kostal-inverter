@@ -144,11 +144,20 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
         attempt++;
         this.log.debug(`Versuch ${attempt}/${maxRetries} - Kostal-Daten abrufen`);
 
-        // Python-Script ausführen um echte Daten zu bekommen
+        // Python-Script ausführen mit korrekten Argumenten
         const { spawn } = require('child_process');
         const pythonScript = require('path').join(__dirname, '../kostal_data_bridge.py');
+        
+        const args = [
+          pythonScript,
+          '--host', this.kostalConfig.host,
+          '--username', this.kostalConfig.username || 'pvserver',
+          '--password', this.kostalConfig.password || 'pvwr',
+          '--once',
+          '--output', 'json'
+        ];
 
-        const python = spawn('python3', [pythonScript, '--get-data'], {
+        const python = spawn('python3', args, {
           cwd: process.cwd()
         });
 
@@ -225,22 +234,26 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
    */
   private logRealData(data: KostalData): void {
     const timestamp = new Date().toISOString();
+    
+    // Runden auf 2 Nachkommastellen
+    const round = (val: number | undefined) => val !== undefined ? Math.round(val * 100) / 100 : 0;
+
     const logEntry: LogEntry = {
       timestamp,
       data: {
-        power: data.power || 0,
-        energy_today: data.energy_today || 0,
-        energy_total: data.energy_total || 0,
-        temperature: data.temperature || 0,
-        voltage_ac: data.voltage_ac || 0,
-        frequency: data.frequency || 0,
+        power: round(data.power),
+        energy_today: round(data.energy_today),
+        energy_total: round(data.energy_total),
+        temperature: round(data.temperature),
+        voltage_ac: round(data.voltage_ac),
+        frequency: round(data.frequency),
         status: data.status || 0,
-        voltage_dc1: data.voltage_dc1 || 0,
-        voltage_dc2: data.voltage_dc2 || 0,
-        current_dc1: data.current_dc1 || 0,
-        current_dc2: data.current_dc2 || 0,
-        power_dc1: data.power_dc1 || 0,
-        power_dc2: data.power_dc2 || 0
+        voltage_dc1: round(data.voltage_dc1),
+        voltage_dc2: round(data.voltage_dc2),
+        current_dc1: round(data.current_dc1),
+        current_dc2: round(data.current_dc2),
+        power_dc1: round(data.power_dc1),
+        power_dc2: round(data.power_dc2)
       }
     };
 
@@ -253,16 +266,16 @@ export class KostalEnergyGenerator implements DynamicPlatformPlugin {
     }
 
     // Reduziertes Logging - nur bei Änderungen oder alle 10 Minuten
-    const shouldLog = this.shouldLogData(data);
+    const shouldLog = this.shouldLogData(logEntry.data); // Nutze gerundete Daten für Check
     if (shouldLog) {
       this.log.info('=== KOSTAL-DATEN UPDATE ===');
-      this.log.info(`Leistung: ${data.power || 0} W`);
-      this.log.info(`Tagesenergie: ${data.energy_today || 0} kWh`);
-      this.log.info(`Temperatur: ${data.temperature || 0} °C`);
+      this.log.info(`Leistung: ${logEntry.data.power} W`);
+      this.log.info(`Tagesenergie: ${logEntry.data.energy_today} kWh`);
+      this.log.info(`Temperatur: ${logEntry.data.temperature} °C`);
       this.log.info(`Status: ${data.status && data.status > 0 ? 'Online' : 'Offline'}`);
       this.log.info('===========================');
     } else {
-      this.log.debug(`Daten aktualisiert: ${data.power || 0}W, ${data.energy_today || 0}kWh`);
+      this.log.debug(`Daten aktualisiert: ${logEntry.data.power}W, ${logEntry.data.energy_today}kWh`);
     }
   }
 

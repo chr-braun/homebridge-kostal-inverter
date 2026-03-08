@@ -239,9 +239,10 @@ export class KostalEnergyAccessory {
       case 'main':
         // Solarproduktion als Outlet (Energieerzeuger)
         if (data.power !== undefined) {
-          this.currentValues.set('power', data.power);
+          const roundedPower = Math.round(data.power * 100) / 100;
+          this.currentValues.set('power', roundedPower);
           // Positive Werte für Erzeugung
-          const powerValue = Math.max(0, data.power);
+          const powerValue = Math.max(0, roundedPower);
           
           try {
             const char = this.mainService.getCharacteristic(CurrentPowerConsumptionUUID);
@@ -278,16 +279,18 @@ export class KostalEnergyAccessory {
       case 'temperature':
         // Temperatur
         if (data.temperature !== undefined) {
-          this.currentValues.set('temperature', data.temperature);
-          this.mainService.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, data.temperature);
+          const roundedTemp = Math.round(data.temperature * 100) / 100;
+          this.currentValues.set('temperature', roundedTemp);
+          this.mainService.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, roundedTemp);
         }
         break;
 
       case 'daily_energy':
         // Tagesenergie (kWh als Lux)
         if (data.energy_today !== undefined) {
-          this.currentValues.set('energy_today', data.energy_today);
-          const luxValue = Math.max(0.0001, data.energy_today * 1000);
+          const roundedEnergy = Math.round(data.energy_today * 100) / 100;
+          this.currentValues.set('energy_today', roundedEnergy);
+          const luxValue = Math.max(0.0001, roundedEnergy * 1000);
           this.mainService.updateCharacteristic(this.platform.Characteristic.CurrentAmbientLightLevel, luxValue);
         }
         break;
