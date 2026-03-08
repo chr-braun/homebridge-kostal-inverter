@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.5] - 2026-03-08
+
+### 🐞 Bug Fixes
+
+- **Initialisierung stabilisiert**: Verbesserte Fehlerbehandlung beim Hinzufügen der `CurrentPowerConsumption` Charakteristik, um Abstürze bei existierenden Accessories zu verhindern.
+- **Daten-Update gesichert**: Verhindert `TypeError`, falls ein Accessory nicht vollständig initialisiert wurde, aber Daten empfängt.
+
 ## [2.2.4] - 2026-03-08
 
 ### 🐞 Bug Fixes

@@ -71,27 +71,32 @@ export class KostalEnergyAccessory {
 
     switch (deviceType) {
       case 'main':
-        // Solarproduktion als Outlet (Energieerzeuger mit CurrentPowerConsumption)
-        // Prüfe ob Service existiert anhand UUID und Subtype (zuverlässiger als Name)
-        this.mainService = this.accessory.getServiceById(this.platform.Service.Outlet, serviceId) ||
-          this.accessory.addService(this.platform.Service.Outlet, deviceName, serviceId);
-        
-        this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
-        this.mainService.setCharacteristic(this.platform.Characteristic.On, true); // Immer "Ein" für Erzeuger
-        this.mainService.setCharacteristic(this.platform.Characteristic.OutletInUse, true); // Immer in Betrieb
-        
-        // CurrentPowerConsumption hinzufügen (falls verfügbar)
-        if (this.mainService.getCharacteristic(CurrentPowerConsumptionUUID)) {
-          this.mainService.getCharacteristic(CurrentPowerConsumptionUUID)!.setValue(0);
-        } else {
-          this.mainService.addCharacteristic(new this.platform.Characteristic('Current Power Consumption', CurrentPowerConsumptionUUID, {
-            format: this.platform.Characteristic.Formats.UINT16,
-            unit: 'W',
-            minValue: 0,
-            maxValue: 65535,
-            minStep: 1,
-            perms: [this.platform.Characteristic.Perms.READ, this.platform.Characteristic.Perms.NOTIFY]
-          })).setValue(0);
+        try {
+          // Solarproduktion als Outlet (Energieerzeuger mit CurrentPowerConsumption)
+          // Prüfe ob Service existiert anhand UUID und Subtype (zuverlässiger als Name)
+          this.mainService = this.accessory.getServiceById(this.platform.Service.Outlet, serviceId) ||
+            this.accessory.addService(this.platform.Service.Outlet, deviceName, serviceId);
+          
+          this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
+          this.mainService.setCharacteristic(this.platform.Characteristic.On, true); // Immer "Ein" für Erzeuger
+          this.mainService.setCharacteristic(this.platform.Characteristic.OutletInUse, true); // Immer in Betrieb
+          
+          // CurrentPowerConsumption hinzufügen (falls verfügbar)
+          const existingChar = this.mainService.getCharacteristic(CurrentPowerConsumptionUUID);
+          if (existingChar) {
+            existingChar.setValue(0);
+          } else {
+            this.mainService.addCharacteristic(new this.platform.Characteristic('Current Power Consumption', CurrentPowerConsumptionUUID, {
+              format: this.platform.Characteristic.Formats.UINT16,
+              unit: 'W',
+              minValue: 0,
+              maxValue: 65535,
+              minStep: 1,
+              perms: [this.platform.Characteristic.Perms.READ, this.platform.Characteristic.Perms.NOTIFY]
+            })).setValue(0);
+          }
+        } catch (error) {
+          this.log.debug('Fehler bei der Initialisierung des Main-Service (wird ignoriert):', error);
         }
         break;
 
@@ -235,7 +240,15 @@ export class KostalEnergyAccessory {
           this.currentValues.set('power', data.power);
           // Positive Werte für Erzeugung
           const powerValue = Math.max(0, data.power);
-          this.mainService.updateCharacteristic(CurrentPowerConsumptionUUID, powerValue);
+          
+          try {
+            const char = this.mainService.getCharacteristic(CurrentPowerConsumptionUUID);
+            if (char) {
+              char.updateValue(powerValue);
+            }
+          } catch (e) {
+            // Ignoriere Fehler beim Update, falls Charakteristik fehlt
+          }
         }
         break;
 
