@@ -160,13 +160,15 @@ export class KostalEnergyAccessory {
     switch (deviceType) {
       case 'main':
         // Solarproduktion als Outlet (Energieerzeuger)
-        this.mainService.getCharacteristic(CurrentPowerConsumptionUUID)!
-          .on('get', (callback) => {
+        const powerChar = this.mainService.getCharacteristic(CurrentPowerConsumptionUUID);
+        if (powerChar) {
+          powerChar.on('get', (callback) => {
             const power = this.currentValues.get('power') || 0;
             // Positive Werte für Erzeugung
             const powerValue = Math.max(0, power);
             callback(null, powerValue);
           });
+        }
         break;
 
       case 'home_power':

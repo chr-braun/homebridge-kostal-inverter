@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.6] - 2026-03-08
+
+### 🐞 Bug Fix
+
+- **Event-Handler stabilisiert**: Verhindert Abstürze beim Registrieren von Event-Handlern für `CurrentPowerConsumption`, falls diese Charakteristik nicht korrekt initialisiert werden konnte.
+
 ## [2.2.5] - 2026-03-08
 
 ### 🐞 Bug Fixes
