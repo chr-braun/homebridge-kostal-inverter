@@ -3,8 +3,13 @@
     "target": "ES2018",
     "lib": ["ES2018"],
     "module": "commonjs",
+<<<<<<< HEAD
     "declaration": true,
     "declarationMap": true,
+=======
+    "lib": ["ES2020"],
+    "types": ["node"],
+>>>>>>> b58f076 (feat: add energy producer outlet support (v2.2.0))
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
