@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.3] - 2026-03-08
+
+### 🐞 Bug Fixes
+
+- **Stabilität verbessert**: Korrigiert ein Problem beim Wiederherstellen von Services aus dem Cache (durch Verwendung deterministischer Service-IDs anstatt Zeitstempel).
+- **Fehlerbehandlung**: Fängt Fehler bei der Initialisierung von Accessories ab, um Abstürze des Child-Bridge-Prozesses zu verhindern.
+
 ## [2.2.2] - 2026-03-08
 
 ### 🐞 Bug Fix

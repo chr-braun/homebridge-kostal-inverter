@@ -45,21 +45,29 @@ export class KostalEnergyAccessory {
     this.device = accessory.context.device;
     this.log = platform.log;
 
-    // Accessory Information Service
-    this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Kostal')
-      .setCharacteristic(this.platform.Characteristic.Model, this.device.model || 'Solar Energy Generator')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.serialNumber)
-      .setCharacteristic(this.platform.Characteristic.FirmwareRevision, '2.0.0');
+    try {
+      // Accessory Information Service sicherstellen
+      const infoService = this.accessory.getService(this.platform.Service.AccessoryInformation) ||
+        this.accessory.addService(this.platform.Service.AccessoryInformation);
 
-    this.createServices();
-    this.setupEventHandlers();
+      infoService
+        .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Kostal')
+        .setCharacteristic(this.platform.Characteristic.Model, this.device.model || 'Solar Energy Generator')
+        .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.serialNumber || 'Unknown')
+        .setCharacteristic(this.platform.Characteristic.FirmwareRevision, '2.2.2');
+
+      this.createServices();
+      this.setupEventHandlers();
+    } catch (error) {
+      this.log.error(`Fehler beim Initialisieren des Accessory ${this.device.name}:`, error);
+    }
   }
 
   private createServices(): void {
     const deviceType = this.device.type;
     const deviceName = this.device.name;
-    const serviceId = `${deviceType}-${Date.now()}`;
+    // Deterministische Service-ID statt Date.now() für konsistente Wiederherstellung
+    const serviceId = deviceType;
 
     switch (deviceType) {
       case 'main':
