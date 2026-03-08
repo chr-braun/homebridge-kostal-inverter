@@ -72,7 +72,8 @@ export class KostalEnergyAccessory {
     switch (deviceType) {
       case 'main':
         // Solarproduktion als Outlet (Energieerzeuger mit CurrentPowerConsumption)
-        this.mainService = this.accessory.getService(deviceName) ||
+        // Prüfe ob Service existiert anhand UUID und Subtype (zuverlässiger als Name)
+        this.mainService = this.accessory.getServiceById(this.platform.Service.Outlet, serviceId) ||
           this.accessory.addService(this.platform.Service.Outlet, deviceName, serviceId);
         
         this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
@@ -96,7 +97,7 @@ export class KostalEnergyAccessory {
 
       case 'home_power':
         // Hausverbrauch als Motion Sensor (Bewegung = Verbrauch)
-        this.mainService = this.accessory.getService(deviceName) ||
+        this.mainService = this.accessory.getServiceById(this.platform.Service.MotionSensor, serviceId) ||
           this.accessory.addService(this.platform.Service.MotionSensor, deviceName, serviceId);
         
         this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
@@ -105,7 +106,7 @@ export class KostalEnergyAccessory {
 
       case 'grid_power':
         // Netzleistung als Occupancy Sensor (Bezug/Einspeisung)
-        this.mainService = this.accessory.getService(deviceName) ||
+        this.mainService = this.accessory.getServiceById(this.platform.Service.OccupancySensor, serviceId) ||
           this.accessory.addService(this.platform.Service.OccupancySensor, deviceName, serviceId);
         
         this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
@@ -115,7 +116,7 @@ export class KostalEnergyAccessory {
 
       case 'temperature':
         // Temperatur als Temperature Sensor
-        this.mainService = this.accessory.getService(deviceName) ||
+        this.mainService = this.accessory.getServiceById(this.platform.Service.TemperatureSensor, serviceId) ||
           this.accessory.addService(this.platform.Service.TemperatureSensor, deviceName, serviceId);
         
         this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
@@ -124,7 +125,7 @@ export class KostalEnergyAccessory {
 
       case 'daily_energy':
         // Tagesenergie als Light Sensor (kWh als Lux)
-        this.mainService = this.accessory.getService(deviceName) ||
+        this.mainService = this.accessory.getServiceById(this.platform.Service.LightSensor, serviceId) ||
           this.accessory.addService(this.platform.Service.LightSensor, deviceName, serviceId);
         
         this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);
@@ -133,7 +134,7 @@ export class KostalEnergyAccessory {
 
       case 'status':
         // Status als Contact Sensor
-        this.mainService = this.accessory.getService(deviceName) ||
+        this.mainService = this.accessory.getServiceById(this.platform.Service.ContactSensor, serviceId) ||
           this.accessory.addService(this.platform.Service.ContactSensor, deviceName, serviceId);
         
         this.mainService.setCharacteristic(this.platform.Characteristic.Name, deviceName);

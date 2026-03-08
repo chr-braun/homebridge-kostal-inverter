@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.4] - 2026-03-08
+
+### 🐞 Bug Fixes
+
+- **Service-Duplikate behoben**: Verhindert Fehler beim Start, bei denen versucht wurde, bereits existierende Services neu anzulegen ("Cannot add a Service with the same UUID..."). Die Services werden nun korrekt aus dem Cache wiederhergestellt.
+- **Python-Bridge Parameter**: Korrigierte Übergabe der Verbindungsparameter (`--host`, `--username`, `--password`) an das Python-Skript, um Verbindungsfehler zu beheben.
+
 ## [2.2.3] - 2026-03-08
 
 ### 🐞 Bug Fixes
